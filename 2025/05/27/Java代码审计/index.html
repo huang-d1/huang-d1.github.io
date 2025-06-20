@@ -26,11 +26,12 @@
 <meta property="og:site_name" content="huangdi&#39;s blog">
 <meta property="og:description" content="Java代码审计 读懂一段代码：从下到上追踪，找到变量的传递与函数之间的关系，理清代码即可大致读懂 分析变量组成：打印出每个过程参数的值逐个分析(调试)  通用步骤 寻找漏洞触发点 构造payload尝试利用漏洞  checklistJava代码审计checklist（上） (qq.com) JAVA攻防基础之代码审计 (qq.com) SQL注入 三个模式 JDBC，Mybatis，Hibern">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A101.png">
-<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A102.png">
-<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A103.png">
-<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A104.png">
-<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A105.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A106.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A107.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A108.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A109.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A110.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A111.png">
 <meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A112.png">
 <meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A113.png">
 <meta property="og:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A116.png">
@@ -64,11 +65,11 @@
 <meta property="og:image" content="https://.3001.net//s/20221209/1670591008_63933220d0b7298b0fb3f.png!small">
 <meta property="og:image" content="http://huang-d1.github.io/img/%E6%B3%A8%E5%85%A5%E7%82%B9.png">
 <meta property="article:published_time" content="2025-05-27T11:25:17.199Z">
-<meta property="article:modified_time" content="2025-06-17T12:52:59.799Z">
+<meta property="article:modified_time" content="2025-06-20T11:31:57.646Z">
 <meta property="article:author" content="huangdi">
 <meta property="article:tag" content="Java代码审计">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A101.png">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/java%E5%AE%A1%E8%AE%A106.png">
   
   
   
@@ -261,7 +262,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          8.3k words
+          8.4k words
         
       </span>
     
@@ -349,88 +350,71 @@
 <ol>
 <li>是否使用预编译技术，预编译是否完整</li>
 <li>定位sql语句上下文，查看是否有参数直接拼接，是否对模糊查询关键字的过滤</li>
-<li>Mybatis框架则搜索${}，四种情况无法预编译：like模糊查询，order by排序，范围查询in，动态列名，表名，只能拼接，所以还是需要手工防注入</li>
+<li>Mybatis框架则搜索${}，四种情况无法预编译：like模糊查询，order by排序，范围查询in，动态列名，表名，只能拼接，所以还是需要手工防注入<br>注：like和in语句直接使用#{}会报错，改为${}恢复正常但是无法预编译</li>
 </ol>
 </li>
 </ul>
-<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><ul>
-<li>找模式</li>
-<li>搜关键字</li>
-<li>追踪确定可控变量</li>
-<li>确定路由</li>
-<li>构造payload测试</li>
-</ul>
-<h4 id="jfinal-cms案例"><a href="#jfinal-cms案例" class="headerlink" title="jfinal_cms案例"></a>jfinal_cms案例</h4><ul>
-<li><p>查看配置文件发现是JDBC驱动</p>
-</li>
-<li><p>全局搜索append()关键字，寻找与sql相关的语句</p>
-<p><img src="/img/java%E5%AE%A1%E8%AE%A101.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
-<p>发现新定义了一个sql语句，并且使用了append()函数拼接</p>
-</li>
-<li><p>判断orderBy变量是否可控，有无过滤</p>
+<p>​		正确写法：<br>  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><code class="hljs java">  mysql:<br>    select * from users where username like <span class="hljs-title function_">concat</span><span class="hljs-params">(<span class="hljs-string">&#x27;%&#x27;</span>,#&#123;username&#125;,<span class="hljs-string">&#x27;%&#x27;</span>)</span><br>  oracle:<br>    select * from users where username like <span class="hljs-string">&#x27;%&#x27;</span>||#&#123;username&#125;||<span class="hljs-string">&#x27;%&#x27;</span><br>  sqlserver:<br>    select * from users where username like <span class="hljs-string">&#x27;%&#x27;</span>+#&#123;username&#125;+<span class="hljs-string">&#x27;%&#x27;</span><br>  ```  <br><br><br>#### 步骤<br><br>- 找模式<br>- 搜关键字<br>- 追踪确定可控变量<br>- 确定路由<br>- 构造payload测试<br><br>#### jfinal_cms案例<br><br>- 查看配置文件发现是JDBC驱动<br><br>- 全局搜索append()关键字，寻找与sql相关的语句<br><br>  ![图片](/img/java审计<span class="hljs-number">01.</span>png)<br><br>  发现新定义了一个sql语句，并且使用了append()函数拼接<br><br>- 判断orderBy变量是否可控，有无过滤<br><br>  - 追踪getBaseForm()类与getOrderBy()方法发现<br><br>    ![](/img/java审计<span class="hljs-number">02.</span>png)<br><br>- 找到对应路由后访问抓包，发现数据包中有form.orderColumn参数，添加*号放到sqlmap中测试payload<br><br>#### oa_system-master案例<br><br>- 查看文字说明发现此oa系统使用的是Mybatis框架<br><br>- 指定文件掩码为 *.xml，全局搜索$&#123;<br><br>  ![](/img/java审计<span class="hljs-number">03.</span>png)<br><br>  跳转查看baseKey参数，全局搜索selece的id值sortMyNotice<br><br>- 寻找baseKey的实现，确定路由为(/informlistpaging)<br><br>  ![](/img/java审计<span class="hljs-number">04.</span>png)<br><br>- 找到路由后访问抓取数据包，使用sqlmap测试payload<br><br>#### RuoYi案例<br><br>- 在源码简介处发现使用的Mybatis框架<br><br>- 搜索关键字$&#123;<br><br>- 找到可能存在不安全写法的地方(筛选出可能的注入点，可执行sql语句)<br><br>  ![](/img/java审计<span class="hljs-number">05.</span>png)<br><br>  追踪updateDeptStatus的用法<br><br>- 全局搜索updateDeptStatus关键字逐个查找用法(寻找路由关系)<br><br>- 直接搜索updateDeptStatus关键字发现此关键字出现在service层中<br><br>  - 基于springboot中，执行sql语句的三个调用<br>    - 业务层调用Dao层<br>    - controller调用service层间接调用Dao层<br>    - controller直接调用Dao层<br>  - 路由关系一般写在controller中<br><br>- 选中updateDeptStatus关键字，点击查找用法，发现updateDept调用了此方法，继续追踪此方法，找到SysDeptController文件中有调用updateDept方法，<br><br>  顺利找到路由关系<br><br>  $&#123;-&gt;updateDeptStatus-&gt;updateParentDeptStatus-&gt;updateDept-&gt;/system/dept/edit<br><br>- 测试payload<br><br>  - 直接访问url地址发现报错<br><br>  - 根据中文注释找到功能点抓取数据包，成功找到/system/dept/edit路由的数据<br><br>  - 发现数据包中没有注入参数值，尝试手动添加<br><br>  - 使用sqlmap无法成功注入，使用手工注入<br><br>  - ```java<br>    DeptName=<span class="hljs-number">1</span>&amp;DeptId=<span class="hljs-number">100</span>&amp;ParentId=<span class="hljs-number">12</span>&amp;&amp;status=<span class="hljs-number">0</span>&amp;OrderNum=<span class="hljs-number">1</span>&amp;ancestors=<span class="hljs-number">0</span>)or(extractvalue(<span class="hljs-number">1</span>,concat((select <span class="hljs-title function_">user</span><span class="hljs-params">()</span>))));#<br></code></pre></td></tr></table></figure></p>
 <ul>
-<li><p>追踪getBaseForm()类与getOrderBy()方法发现</p>
-<p><img src="/img/java%E5%AE%A1%E8%AE%A102.png" srcset="/img/loading.gif" lazyload></p>
-</li>
+<li>使用括号绕过空格过滤</li>
 </ul>
-</li>
-<li><p>找到对应路由后访问抓包，发现数据包中有form.orderColumn参数，添加*号放到sqlmap中测试payload</p>
-</li>
-</ul>
-<h4 id="oa-system-master案例"><a href="#oa-system-master案例" class="headerlink" title="oa_system-master案例"></a>oa_system-master案例</h4><ul>
-<li><p>查看文字说明发现此oa系统使用的是Mybatis框架</p>
-</li>
-<li><p>指定文件掩码为 *.xml，全局搜索${</p>
-<p><img src="/img/java%E5%AE%A1%E8%AE%A103.png" srcset="/img/loading.gif" lazyload></p>
-<p>跳转查看baseKey参数，全局搜索selece的id值sortMyNotice</p>
-</li>
-<li><p>寻找baseKey的实现，确定路由为(&#x2F;informlistpaging)</p>
-<p><img src="/img/java%E5%AE%A1%E8%AE%A104.png" srcset="/img/loading.gif" lazyload></p>
-</li>
-<li><p>找到路由后访问抓取数据包，使用sqlmap测试payload</p>
-</li>
-</ul>
-<h4 id="RuoYi案例"><a href="#RuoYi案例" class="headerlink" title="RuoYi案例"></a>RuoYi案例</h4><ul>
-<li><p>在源码简介处发现使用的Mybatis框架</p>
-</li>
-<li><p>搜索关键字${</p>
-</li>
-<li><p>找到可能存在不安全写法的地方(筛选出可能的注入点，可执行sql语句)</p>
-<p><img src="/img/java%E5%AE%A1%E8%AE%A105.png" srcset="/img/loading.gif" lazyload></p>
-<p>追踪updateDeptStatus的用法</p>
-</li>
-<li><p>全局搜索updateDeptStatus关键字逐个查找用法(寻找路由关系)</p>
-</li>
-<li><p>直接搜索updateDeptStatus关键字发现此关键字出现在service层中</p>
+<h3 id="文件安全"><a href="#文件安全" class="headerlink" title="文件安全"></a>文件安全</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/god_zzZ/article/details/108104523">Java代码审计：文件篇&#x2F;文件上传&#x2F;文件读取&#x2F;目录遍历_潜在路径遍历(文件读取) 打开文件以读取其内容。文件名来自输入参数。如果将未过-CSDN博客</a></p>
 <ul>
-<li>基于springboot中，执行sql语句的三个调用<ul>
-<li>业务层调用Dao层</li>
-<li>controller调用service层间接调用Dao层</li>
-<li>controller直接调用Dao层</li>
+<li><p>关键字查询</p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A106.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A107.png" srcset="/img/loading.gif" lazyload></p>
+</li>
 </ul>
+<h4 id="Inxedu案例-前台文件上传"><a href="#Inxedu案例-前台文件上传" class="headerlink" title="Inxedu案例(前台文件上传)"></a>Inxedu案例(前台文件上传)</h4><ul>
+<li><p>搭建网站后直接寻找功能点，发现有文件上传</p>
 </li>
-<li>路由关系一般写在controller中</li>
+<li><p>尝试上传文件找到路由</p>
+</li>
+<li><p>此网站源码将文件安全代码封装在jar包中，&#x2F;UploadController.class，需要通读目录，理清结构才能找到</p>
+</li>
+<li><p>根据上传文件时找到的路由，确定控制代码</p>
+</li>
+<li><p>发现是黑名单过滤，只过滤jsp文件</p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A108.png" srcset="/img/loading.gif" lazyload></p>
+</li>
+<li><p>使用工具生成jspx文件，修改前端白名单过滤代码，成功上传</p>
+</li>
 </ul>
+<h4 id="Tmall案例"><a href="#Tmall案例" class="headerlink" title="Tmall案例"></a>Tmall案例</h4><h5 id="后台文件上传"><a href="#后台文件上传" class="headerlink" title="后台文件上传"></a>后台文件上传</h5><ul>
+<li><p>搜索文件安全相关关键字</p>
 </li>
-<li><p>选中updateDeptStatus关键字，点击查找用法，发现updateDept调用了此方法，继续追踪此方法，找到SysDeptController文件中有调用updateDept方法，</p>
-<p>顺利找到路由关系</p>
-<p>${-&gt;updateDeptStatus-&gt;updateParentDeptStatus-&gt;updateDept-&gt;&#x2F;system&#x2F;dept&#x2F;edit</p>
+<li><p>搜索new File，找到文件上传相关代码</p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A109.png" srcset="/img/loading.gif" lazyload></p>
+<p>文件上传过滤一般关注后缀，所以在此段代码中应该关注文件名后缀是如何获取的</p>
+<p>发现这段代码是直接获取了原文件后缀后并没有过滤，而是直接上传了</p>
 </li>
-<li><p>测试payload</p>
+<li><p>开始测试，发现有前端验证，抓包后更改后缀为jsp可以正常上传</p>
+</li>
+</ul>
+<h5 id="过滤器鉴权"><a href="#过滤器鉴权" class="headerlink" title="过滤器鉴权"></a>过滤器鉴权</h5><ul>
+<li><p>找到过滤器核心代码AdminPermissionFilter类</p>
+</li>
+<li><p>找到核心控制方法doFilter</p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A110.png" srcset="/img/loading.gif" lazyload></p>
+<p>发现鉴权存在了漏洞，容易越权</p>
+</li>
+<li><p>进行测试</p>
 <ul>
-<li><p>直接访问url地址发现报错</p>
-</li>
-<li><p>根据中文注释找到功能点抓取数据包，成功找到&#x2F;system&#x2F;dept&#x2F;edit路由的数据</p>
-</li>
-<li><p>发现数据包中没有注入参数值，尝试手动添加</p>
-</li>
-<li><p>使用sqlmap无法成功注入，使用手工注入</p>
-</li>
-<li><pre><code class="language-java">DeptName=1&amp;DeptId=100&amp;ParentId=12&amp;&amp;status=0&amp;OrderNum=1&amp;ancestors=0)or(extractvalue(1,concat((select user()))));#
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><br><span class="hljs-bullet">  -</span> 使用括号绕过空格过滤<br><br><span class="hljs-section">### 文件安全</span><br><br>[<span class="hljs-string">Java代码审计：文件篇/文件上传/文件读取/目录遍历_潜在路径遍历(文件读取) 打开文件以读取其内容。文件名来自输入参数。如果将未过-CSDN博客</span>](<span class="hljs-link">https://blog.csdn.net/god_zzZ/article/details/108104523</span>)<br><br><span class="hljs-bullet">-</span> 关键字查询<br><br>  ![](<span class="hljs-link">/img/java审计06.png</span>)<br><br>  ![](<span class="hljs-link">/img/java审计07.png</span>)<br><br><span class="hljs-section">#### Inxedu案例(前台文件上传)</span><br><br><span class="hljs-bullet">-</span> 搭建网站后直接寻找功能点，发现有文件上传<br><br><span class="hljs-bullet">-</span> 尝试上传文件找到路由<br><br><span class="hljs-bullet">-</span> 此网站源码将文件安全代码封装在jar包中，/UploadController.class，需要通读目录，理清结构才能找到<br><br><span class="hljs-bullet">-</span> 根据上传文件时找到的路由，确定控制代码<br><br><span class="hljs-bullet">-</span> 发现是黑名单过滤，只过滤jsp文件<br><br>  ![](<span class="hljs-link">/img/java审计08.png</span>)<br><br><span class="hljs-bullet">-</span> 使用工具生成jspx文件，修改前端白名单过滤代码，成功上传<br><br><span class="hljs-section">#### Tmall案例</span><br><br><span class="hljs-section">##### 后台文件上传</span><br><br><span class="hljs-bullet">-</span> 搜索文件安全相关关键字<br><br><span class="hljs-bullet">-</span> 搜索new File，找到文件上传相关代码<br><br>  ![](<span class="hljs-link">/img/java审计09.png</span>)<br><br>  文件上传过滤一般关注后缀，所以在此段代码中应该关注文件名后缀是如何获取的<br><br>  发现这段代码是直接获取了原文件后缀后并没有过滤，而是直接上传了<br><br><span class="hljs-bullet">-</span> 开始测试，发现有前端验证，抓包后更改后缀为jsp可以正常上传<br><br><span class="hljs-section">##### 过滤器鉴权</span><br><br><span class="hljs-bullet">-</span> 找到过滤器核心代码AdminPermissionFilter类<br><br><span class="hljs-bullet">-</span> 找到核心控制方法doFilter<br><br>  ![](<span class="hljs-link">/img/java审计10.png</span>)<br><br>  发现鉴权存在了漏洞，容易越权<br><br><span class="hljs-bullet">-</span> 进行测试<br><br><span class="hljs-bullet">  -</span> 在数据包url中加上 /admin/login/../../<br><span class="hljs-bullet">  -</span> 成功绕过鉴权<br><br><span class="hljs-section">#### RuoYi-4.5.0(文件下载)</span><br><br><span class="hljs-bullet">-</span> 搜索关键字new FileInputStream<br><br>  ![](<span class="hljs-link">/img/java审计11.png</span>)<br><br>  找到这段相关代码控制字节输出，但是发现这个类中没有路由关系，不能直接触发此漏洞<br><br><span class="hljs-bullet">-</span> 尝试查找是否有用过writeBytes方法<br><br><span class="hljs-bullet">-</span> 查找用法后发现，CommonController类中fileDownload方法和resourceDownload方法调用了此方法<br><br>  <span class="hljs-code">```java</span><br><span class="hljs-code">  @GetMapping(&quot;/common/download/resource&quot;)</span><br><span class="hljs-code">      public void resourceDownload(String resource, HttpServletRequest request, HttpServletResponse response)</span><br><span class="hljs-code">              throws Exception</span><br><span class="hljs-code">      &#123;</span><br><span class="hljs-code">          // 本地资源路径</span><br><span class="hljs-code">          String localPath = Global.getProfile();</span><br><span class="hljs-code">          // 数据库资源地址</span><br><span class="hljs-code">          String downloadPath = localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);</span><br><span class="hljs-code">          // 下载名称</span><br><span class="hljs-code">          String downloadName = StringUtils.substringAfterLast(downloadPath, &quot;/&quot;);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);</span><br><span class="hljs-code">          FileUtils.setAttachmentResponseHeader(response, downloadName);</span><br><span class="hljs-code">  </span><br><span class="hljs-code">          FileUtils.writeBytes(downloadPath, response.getOutputStream());</span><br><span class="hljs-code">      &#125;</span><br><span class="hljs-code">  &#125;</span><br></code></pre></td></tr></table></figure>
-</code></pre>
+<li>在数据包url中加上 &#x2F;admin&#x2F;login&#x2F;..&#x2F;..&#x2F;</li>
+<li>成功绕过鉴权</li>
+</ul>
 </li>
 </ul>
+<h4 id="RuoYi-4-5-0-文件下载"><a href="#RuoYi-4-5-0-文件下载" class="headerlink" title="RuoYi-4.5.0(文件下载)"></a>RuoYi-4.5.0(文件下载)</h4><ul>
+<li><p>搜索关键字new FileInputStream</p>
+<p><img src="/img/java%E5%AE%A1%E8%AE%A111.png" srcset="/img/loading.gif" lazyload></p>
+<p>找到这段相关代码控制字节输出，但是发现这个类中没有路由关系，不能直接触发此漏洞</p>
+</li>
+<li><p>尝试查找是否有用过writeBytes方法</p>
+</li>
+<li><p>查找用法后发现，CommonController类中fileDownload方法和resourceDownload方法调用了此方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@GetMapping(&quot;/common/download/resource&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">resourceDownload</span><span class="hljs-params">(String resource, HttpServletRequest request, HttpServletResponse response)</span><br>            <span class="hljs-keyword">throws</span> Exception<br>    &#123;<br>        <span class="hljs-comment">// 本地资源路径</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">localPath</span> <span class="hljs-operator">=</span> Global.getProfile();<br>        <span class="hljs-comment">// 数据库资源地址</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">downloadPath</span> <span class="hljs-operator">=</span> localPath + StringUtils.substringAfter(resource, Constants.RESOURCE_PREFIX);<br>        <span class="hljs-comment">// 下载名称</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">downloadName</span> <span class="hljs-operator">=</span> StringUtils.substringAfterLast(downloadPath, <span class="hljs-string">&quot;/&quot;</span>);<br><br>        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);<br>        FileUtils.setAttachmentResponseHeader(response, downloadName);<br><br>        FileUtils.writeBytes(downloadPath, response.getOutputStream());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>打印出localPath与downloadPath的值查看resource参数是如何构成的</p>
 <p><img src="/img/java%E5%AE%A1%E8%AE%A112.png" srcset="/img/loading.gif" lazyload></p>
 <p>代码释义</p>
