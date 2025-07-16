@@ -76,7 +76,7 @@
 <meta property="og:image" content="http://huang-d1.github.io/img/ssti(java)/ssti45.png">
 <meta property="og:image" content="http://huang-d1.github.io/img/ssti(java)/ssti46.png">
 <meta property="article:published_time" content="2025-07-16T15:57:49.731Z">
-<meta property="article:modified_time" content="2025-07-16T16:04:23.623Z">
+<meta property="article:modified_time" content="2025-07-16T16:11:47.536Z">
 <meta property="article:author" content="huangdi">
 <meta property="article:tag" content="Java代码审计">
 <meta name="twitter:card" content="summary_large_image">
@@ -326,10 +326,7 @@
             
               <div class="markdown-body">
                 
-                <h1 id="java代码审计中的SSTI"><a href="#java代码审计中的SSTI" class="headerlink" title="java代码审计中的SSTI"></a>java代码审计中的SSTI</h1><p>参考：<a target="_blank" rel="noopener" href="https://drun1baby.top/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/#0x02-FreeMarker-SSTI">Java OWASP SSTI 学习 | Drunkbaby’s Blog (drun1baby.top)</a></p>
-<p>​		   <a target="_blank" rel="noopener" href="https://www.cnblogs.com/bmjoker/p/13508538.html">1. SSTI（模板注入）漏洞（入门篇） - bmjoker - 博客园 (cnblogs.com)</a></p>
-<p>​		   <a target="_blank" rel="noopener" href="https://xz.aliyun.com/news/7062">白头搔更短，SSTI惹人心！-先知社区 (aliyun.com)</a></p>
-<h2 id="FreeMarker-SSTI"><a href="#FreeMarker-SSTI" class="headerlink" title="FreeMarker SSTI"></a>FreeMarker SSTI</h2><h3 id="FreeMarket基本语法"><a href="#FreeMarket基本语法" class="headerlink" title="FreeMarket基本语法"></a>FreeMarket基本语法</h3><h4 id="插值"><a href="#插值" class="headerlink" title="插值"></a>插值</h4><p><a target="_blank" rel="noopener" href="http://freemarker.foofun.cn/dgui_template_valueinsertion.html">插值 - FreeMarker 中文官方参考手册 (foofun.cn)</a></p>
+                <h2 id="FreeMarker-SSTI"><a href="#FreeMarker-SSTI" class="headerlink" title="FreeMarker SSTI"></a>FreeMarker SSTI</h2><h3 id="FreeMarket基本语法"><a href="#FreeMarket基本语法" class="headerlink" title="FreeMarket基本语法"></a>FreeMarket基本语法</h3><h4 id="插值"><a href="#插值" class="headerlink" title="插值"></a>插值</h4><p><a target="_blank" rel="noopener" href="http://freemarker.foofun.cn/dgui_template_valueinsertion.html">插值 - FreeMarker 中文官方参考手册 (foofun.cn)</a></p>
 <p>插值的使用格式是： <code>$&#123;expression&#125;</code>，这里的 <code>expression</code> 可以是所有种类的表达式(比如 <code>$&#123;100 + x&#125;</code>)。</p>
 <p>插值是用来给表达式插入具体值然后转换为文本(字符串)。插值仅仅可以在两种位置使用：在文本区(比如 <code>&lt;h1&gt;Hello $&#123;name&#125;!&lt;/h1&gt;</code>) 和字符串表达式(比如 <code>&lt;#include &quot;/footer/$&#123;company&#125;.html&quot;&gt;</code>)中。</p>
 <p>需要注意的是：如果插值在文本区 (也就是说，不在字符串表达式中)，如果 <code>escape</code> 指令起作用了，那么将被插入的字符串会被自动转义。</p>
@@ -732,6 +729,8 @@
 <li><p>三个模板漏洞都是在渲染代码中触发漏洞，走入对应的render渲染方法开始，最终走到Method类的invoke方法利用java反射调用runtime(或其他)方法执行exec命令后结束</p>
 </li>
 <li><p>将配置的拦截器加入到执行链中去，在<strong>getHandlerExecutionChain</strong> 方法</p>
+</li>
+<li><p>分析源码真的很需要耐心，得一步步慢慢调试才能进入关键函数</p>
 </li>
 </ol>
 <p>参考：</p>
