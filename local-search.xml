@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>claude安装问题解决</title>
+    <link href="/2026/04/01/claude%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/"/>
+    <url>/2026/04/01/claude%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/</url>
+    
+    <content type="html"><![CDATA[<h1 id="claude安装问题解决"><a href="#claude安装问题解决" class="headerlink" title="claude安装问题解决"></a>claude安装问题解决</h1><h2 id="前提"><a href="#前提" class="headerlink" title="前提"></a>前提</h2><p>使用Nodejs的npm命令全局安装claude，在node目录下能看到claude，claude.cmd，claude.ps1文件，但是在终端执行的目录下找不到.claude文件夹</p><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>终端输入claude -v能正常输出，输入claude无翻译</p><h2 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h2><p>Node运行claude CLI时会访问<a href="https://api.anthropic.com,执行curl命令查看/">https://api.anthropic.com，执行curl命令查看</a></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">curl https://api.anthropic.com <br>▐▛███▜▌ Anthropic API <br>▝▜█████▛▘ POST /v1/messages <br>▘▘ ▝▝ https://docs.anthropic.com<br></code></pre></td></tr></table></figure><p>能够正常回显</p><p>是代理或者CLI本身的问题，逐一解决</p><h2 id="原因及解决"><a href="#原因及解决" class="headerlink" title="原因及解决"></a>原因及解决</h2><p> Node.js 在启动 CLI 时由于代理配置卡死，所以下载的claude有壳子，能执行claude -v ，但是无法运行CLI，所以claude命令无法执行</p><p>卡死原因</p><ul><li>CMD 终端兼容性问题</li><li>环境变量冲突（尤其代理）</li><li>Node 版本异常</li><li>npm 全局路径混乱</li></ul><p>由于代理设置混乱，curl命令能正常走代理，Node执行claude CLI无法走代理</p><p>我们重新设置代理，使用–yes绕过所有Nodejs启动CLI的交互，不使用npm全局安装，使用npx安装</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">set</span> HTTP_PROXY=http://127.0.0.1:7890<br><span class="hljs-built_in">set</span> HTTPS_PROXY=http://127.0.0.1:7890<br><span class="hljs-built_in">set</span> ALL_PROXY=http://127.0.0.1:7890<br>npx --<span class="hljs-built_in">yes</span> @anthropic-ai/claude-code<br><br><span class="hljs-built_in">set</span> ANTHROPIC_API_KEY=<br><span class="hljs-built_in">set</span> ANTHROPIC_BASE_URL=<br></code></pre></td></tr></table></figure><h2 id="额外的小知识"><a href="#额外的小知识" class="headerlink" title="额外的小知识"></a>额外的小知识</h2><p>Claude Code CLI 本质是：</p><ul><li>Node.js 程序</li><li>使用 <strong>交互式终端（TTY）+ 异步 UI 渲染</strong></li></ul><p>Claude CLI 本质是什么</p><p>你通过 Node.js 下载的 Claude CLI，其实就是 <strong>一个 Node.js 脚本包装器</strong>：</p><ul><li>主程序是 Node.js 脚本：</li></ul><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">...<span class="hljs-regexp">/node_modules/</span>@anthropic-ai<span class="hljs-regexp">/claude-code/</span>cli.js<br></code></pre></td></tr></table></figure><ul><li>npm 安装全局时，会生成几个“入口文件”：</li></ul><figure class="highlight hsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs hsp">claude         <span class="hljs-meta"># shell 脚本</span><br>claude.cmd     <span class="hljs-meta"># Windows <span class="hljs-keyword">cmd</span> 脚本</span><br>claude.ps1     <span class="hljs-meta"># PowerShell 脚本</span><br></code></pre></td></tr></table></figure><ul><li>这些入口文件只是 <strong>调用 Node.js 执行 cli.js 的小脚本</strong>，并传参。</li><li>本质上 <strong>Claude CLI 不是二进制程序</strong>，只是 Node.js 脚本 + 包管理器包装。</li></ul><p>由于一开始的代理配置有问题，所以执行脚本时无法连接到<a href="https://api.anthropic.com导致执行claude命令没反应/">https://api.anthropic.com导致执行claude命令没反应</a></p><p>在配置好代理后执行</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">npm install -g @anthropic-ai/claude-code<br></code></pre></td></tr></table></figure><p>下载好claude，配置好APIKEY与BASEURL后，再次执行claude命令，发现能够正常回显</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次的安装问题核心在于代理配置问题，nodejs执行CLI时不走代理，导致claude命令无回显</p><p>Claude CLI的本质是认识此次问题的核心</p><p>你通过 Node.js 下载的 Claude CLI，其实就是一个 Node.js 脚本包装器</p><p>由于网络问题无法访问到脚本中定向访问的网站<a href="https://api.anthropic.com,所以命令无回显/">https://api.anthropic.com，所以命令无回显</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>AI</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>AI</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Narak靶场笔记</title>
     <link href="/2026/03/27/Narak%E9%9D%B6%E5%9C%BA%E7%AC%94%E8%AE%B0/"/>
     <url>/2026/03/27/Narak%E9%9D%B6%E5%9C%BA%E7%AC%94%E8%AE%B0/</url>
